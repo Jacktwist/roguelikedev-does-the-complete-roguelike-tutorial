@@ -4,6 +4,8 @@
 
 At [r/roguelikedev](https://www.reddit.com/r/roguelikedev/) we're doing a dev-along following [The Complete Roguelike Tutorial](http://www.roguebasin.com/index.php?title=Complete_Roguelike_Tutorial,_using_python%2Blibtcod).
 
+Rather than use Python and Libtcod, I've decided to use [Go](https://golang.org/) and [BearLibTerminal](http://foo.wyrd.name/en:bearlibterminal). I will also be updating a series of blog posts on my website [jeremyceri.se](http://jeremyceri.se) as each week progresses. I am using this project as an excuse to learn Go, and Bearlibterminal.
+
 ## If you would like to participate on GitHub
 
 * [Sign up for a free personal account](https://github.com/signup/free) if you don't already have one.
