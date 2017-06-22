@@ -6,6 +6,12 @@ At [r/roguelikedev](https://www.reddit.com/r/roguelikedev/) we're doing a dev-al
 
 Rather than use Python and Libtcod, I've decided to use [Go](https://golang.org/) and [BearLibTerminal](http://foo.wyrd.name/en:bearlibterminal). I will also be updating a series of blog posts on my website [jeremyceri.se](http://jeremyceri.se) as each week progresses. I am using this project as an excuse to learn Go, and Bearlibterminal.
 
+## Build Instructions
+
+To build this project, first make sure you have Go installed and configured. The BearLibTerminal Go package needs to be present on your GOPATH.
+
+From the command line, navigate to the root of this project, and excecute `go build bearrogue.go`
+
 ## If you would like to participate on GitHub
 
 * [Sign up for a free personal account](https://github.com/signup/free) if you don't already have one.
