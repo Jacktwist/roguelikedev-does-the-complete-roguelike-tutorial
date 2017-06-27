@@ -72,6 +72,20 @@ func handleInput(key int) {
 	case blt.TK_DOWN:
 		playerY ++
 	}
+
+	// Make sure the player cannot go outside the bounds of the window, for now
+	// This will change when we later add camera controls
+	if playerX > WindowSizeX - 1 {
+		playerX = WindowSizeX - 1
+	} else if playerX < 0 {
+		playerX = 0
+	}
+
+	if playerY > WindowSizeY - 1 {
+		playerY = WindowSizeY - 1
+	} else if playerY < 0 {
+		playerY = 0
+	}
 }
 
 // Draw the player to the screen, at the given coordinates
