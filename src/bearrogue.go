@@ -13,6 +13,12 @@ const (
 	FontSize = 24
 )
 
+var (
+	// Global variables for now. This will be changed once we extrapolate this out to an Object
+	playerX = 0
+	playerY = 0
+)
+
 func init() {
 	blt.Open()
 
@@ -30,17 +36,49 @@ func init() {
 	blt.Set(window + "; " + font)
 	blt.Clear()
 }
-
+	
 func main() {
-	blt.Color(blt.ColorFromName("darker green"))
-	printCenteredText("Hello, World!")
-	blt.Refresh()
+	// Main game loop
 
-	for blt.Read() != blt.TK_CLOSE {
-		// Do nothing for now
+	blt.Color(blt.ColorFromName("white"))
+	drawPlayer(playerX, playerY, "@")
+
+	for {
+		blt.Refresh()
+
+		key := blt.Read()
+
+		if key != blt.TK_CLOSE {
+			handleInput(key)
+			drawPlayer(playerX, playerY, "@")
+		} else {
+			break
+		}
+
 	}
 
 	blt.Close()
+}
+
+// Handle basic character movement in the four main directions
+func handleInput(key int) {
+	switch key {
+	case blt.TK_RIGHT:
+		playerX ++
+	case blt.TK_LEFT:
+		playerX --
+	case blt.TK_UP:
+		playerY --
+	case blt.TK_DOWN:
+		playerY ++
+	}
+}
+
+// Draw the player to the screen, at the given coordinates
+func drawPlayer(x int, y int, symbol string) {
+	blt.Layer(0)
+	blt.ClearArea(0, 0, WindowSizeX, WindowSizeY)
+	blt.Print(playerX, playerY, symbol)
 }
 
 // Centers text on the screen on the X and Y axis (taking string length into account)
