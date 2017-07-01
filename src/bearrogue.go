@@ -3,6 +3,7 @@ package main
 import (
 	blt "bearlibterminal"
 	"strconv"
+	"entity"
 )
 
 const (
@@ -11,12 +12,6 @@ const (
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
-)
-
-var (
-	// Global variables for now. This will be changed once we extrapolate this out to an Object
-	playerX = 0
-	playerY = 0
 )
 
 func init() {
@@ -40,8 +35,8 @@ func init() {
 func main() {
 	// Main game loop
 
-	blt.Color(blt.ColorFromName("white"))
-	drawPlayer(playerX, playerY, "@")
+	player := entity.GameEntity{X: 1, Y: 1, Char: "@", Color: "red"}
+	drawEntity(player)
 
 	for {
 		blt.Refresh()
@@ -49,55 +44,48 @@ func main() {
 		key := blt.Read()
 
 		if key != blt.TK_CLOSE {
-			handleInput(key)
-			drawPlayer(playerX, playerY, "@")
+			handleInput(key, &player)
+			drawEntity(player)
 		} else {
 			break
 		}
-
 	}
 
 	blt.Close()
 }
 
 // Handle basic character movement in the four main directions
-func handleInput(key int) {
+func handleInput(key int, player *entity.GameEntity) {
 	switch key {
 	case blt.TK_RIGHT:
-		playerX ++
+		player.Move(1, 0)
 	case blt.TK_LEFT:
-		playerX --
+		player.Move(-1, 0)
 	case blt.TK_UP:
-		playerY --
+		player.Move(0, -1)
 	case blt.TK_DOWN:
-		playerY ++
+		player.Move(0, 1)
 	}
 
 	// Make sure the player cannot go outside the bounds of the window, for now
 	// This will change when we later add camera controls
-	if playerX > WindowSizeX - 1 {
-		playerX = WindowSizeX - 1
-	} else if playerX < 0 {
-		playerX = 0
+	if player.X> WindowSizeX - 1 {
+		player.X = WindowSizeX - 1
+	} else if player.X < 0 {
+		player.X = 0
 	}
 
-	if playerY > WindowSizeY - 1 {
-		playerY = WindowSizeY - 1
-	} else if playerY < 0 {
-		playerY = 0
+	if player.Y > WindowSizeY - 1 {
+		player.Y = WindowSizeY - 1
+	} else if player.Y < 0 {
+		player.Y = 0
 	}
 }
 
 // Draw the player to the screen, at the given coordinates
-func drawPlayer(x int, y int, symbol string) {
+func drawEntity(entity entity.GameEntity) {
 	blt.Layer(0)
 	blt.ClearArea(0, 0, WindowSizeX, WindowSizeY)
-	blt.Print(playerX, playerY, symbol)
-}
-
-// Centers text on the screen on the X and Y axis (taking string length into account)
-func printCenteredText(text string) {
-	x := WindowSizeX / 2 - (len(text) / 2)
-	y := WindowSizeY / 2
-	blt.Print(x, y, text)
+	blt.Color(blt.ColorFromName(entity.Color))
+	blt.Print(entity.X, entity.Y, entity.Char)
 }
