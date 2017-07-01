@@ -4,14 +4,23 @@ import (
 	blt "bearlibterminal"
 	"strconv"
 	"entity"
+	"gamemap"
 )
 
 const (
 	WindowSizeX = 100
 	WindowSizeY = 35
+	MapWidth = WindowSizeX
+	MapHeight = WindowSizeY
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
+)
+
+var (
+	player *entity.GameEntity
+	entities []*entity.GameEntity
+	gameMap *gamemap.Map
 )
 
 func init() {
@@ -30,62 +39,93 @@ func init() {
 	// Now, put it all together
 	blt.Set(window + "; " + font)
 	blt.Clear()
+
+	// Create a player Entity and an NPC entity, and add them to our slice of Entities
+	player = &entity.GameEntity{X: 1, Y: 1, Layer: 1, Char: "@", Color: "white"}
+	npc := &entity.GameEntity{X: 10, Y: 10, Layer: 0, Char: "N", Color: "red"}
+	entities = append(entities, player, npc)
+
+	// Create a GameMap, and initialize it
+	gameMap = &gamemap.Map{Width: MapWidth, Height: MapHeight}
+	gameMap.InitializeMap()
 }
 	
 func main() {
 	// Main game loop
 
-	player := entity.GameEntity{X: 1, Y: 1, Char: "@", Color: "red"}
-	drawEntity(player)
+	renderAll()
 
 	for {
 		blt.Refresh()
 
 		key := blt.Read()
 
+		// Clear each Entity off the screen
+		for _, e := range entities {
+			e.Clear()
+		}
+
 		if key != blt.TK_CLOSE {
-			handleInput(key, &player)
-			drawEntity(player)
+			handleInput(key, player)
 		} else {
 			break
 		}
+		renderAll()
 	}
 
 	blt.Close()
 }
 
-// Handle basic character movement in the four main directions
 func handleInput(key int, player *entity.GameEntity) {
+	// Handle basic character movement in the four main directions
+
+	var (
+		dx, dy int
+	)
+
 	switch key {
 	case blt.TK_RIGHT:
-		player.Move(1, 0)
+		dx, dy = 1, 0
 	case blt.TK_LEFT:
-		player.Move(-1, 0)
+		dx, dy = -1, 0
 	case blt.TK_UP:
-		player.Move(0, -1)
+		dx, dy = 0, -1
 	case blt.TK_DOWN:
-		player.Move(0, 1)
+		dx, dy = 0, 1
 	}
 
-	// Make sure the player cannot go outside the bounds of the window, for now
-	// This will change when we later add camera controls
-	if player.X> WindowSizeX - 1 {
-		player.X = WindowSizeX - 1
-	} else if player.X < 0 {
-		player.X = 0
-	}
-
-	if player.Y > WindowSizeY - 1 {
-		player.Y = WindowSizeY - 1
-	} else if player.Y < 0 {
-		player.Y = 0
+	// Check to ensure that the tile the player is trying to move in to is a valid move (not blocked)
+	if !gameMap.IsBlocked(player.X + dx, player.Y + dy) {
+		player.Move(dx, dy)
 	}
 }
 
-// Draw the player to the screen, at the given coordinates
-func drawEntity(entity entity.GameEntity) {
-	blt.Layer(0)
-	blt.ClearArea(0, 0, WindowSizeX, WindowSizeY)
-	blt.Color(blt.ColorFromName(entity.Color))
-	blt.Print(entity.X, entity.Y, entity.Char)
+func renderEntities() {
+	// Draw every Entity present in the game. This gets called on each iteration of the game loop.
+	for _, e := range entities {
+		e.Draw()
+	}
 }
+
+func renderMap() {
+	// Render the game map. If a tile is blocked and blocks sight, draw a '#', if it is not blocked, and does not block
+	// sight, draw a '.'
+	for x := 0; x < gameMap.Width; x++ {
+		for y := 0; y < gameMap.Height; y++ {
+			if gameMap.Tiles[x][y].Blocked == true {
+				blt.Color(blt.ColorFromName("gray"))
+				blt.Print(x, y, "#")
+			} else {
+				blt.Color(blt.ColorFromName("brown"))
+				blt.Print(x, y, ".")
+			}
+		}
+	}
+}
+
+func renderAll() {
+	// Convenience function to render all entities, followed by rendering the game map
+	renderMap()
+	renderEntities()
+}
+
