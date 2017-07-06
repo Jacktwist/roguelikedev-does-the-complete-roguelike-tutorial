@@ -2,16 +2,17 @@ package main
 
 import (
 	blt "bearlibterminal"
-	"strconv"
+	"camera"
 	"entity"
 	"gamemap"
+	"strconv"
 )
 
 const (
 	WindowSizeX = 100
 	WindowSizeY = 35
-	MapWidth = WindowSizeX
-	MapHeight = WindowSizeY
+	MapWidth = 200
+	MapHeight = 200
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
@@ -21,6 +22,7 @@ var (
 	player *entity.GameEntity
 	entities []*entity.GameEntity
 	gameMap *gamemap.Map
+	gameCamera *camera.GameCamera
 )
 
 func init() {
@@ -48,6 +50,9 @@ func init() {
 	// Create a GameMap, and initialize it
 	gameMap = &gamemap.Map{Width: MapWidth, Height: MapHeight}
 	gameMap.InitializeMap()
+
+	// Initialize a camera object
+	gameCamera = &camera.GameCamera{X: 1, Y:1, Width: WindowSizeX, Height: WindowSizeY}
 }
 	
 func main() {
@@ -62,7 +67,8 @@ func main() {
 
 		// Clear each Entity off the screen
 		for _, e := range entities {
-			e.Clear()
+			mapX, mapY := gameCamera.ToCameraCoordinates(e.X, e.Y)
+			e.Clear(mapX, mapY)
 		}
 
 		if key != blt.TK_CLOSE {
@@ -103,16 +109,18 @@ func handleInput(key int, player *entity.GameEntity) {
 func renderEntities() {
 	// Draw every Entity present in the game. This gets called on each iteration of the game loop.
 	for _, e := range entities {
-		e.Draw()
+		mapX, mapY := gameCamera.ToCameraCoordinates(e.X, e.Y)
+		e.Draw(mapX, mapY)
 	}
 }
 
 func renderMap() {
 	// Render the game map. If a tile is blocked and blocks sight, draw a '#', if it is not blocked, and does not block
 	// sight, draw a '.'
-	for x := 0; x < gameMap.Width; x++ {
-		for y := 0; y < gameMap.Height; y++ {
-			if gameMap.Tiles[x][y].Blocked == true {
+	for y := 0; y < gameCamera.Height; y++ {
+		for x := 0; x < gameCamera.Width; x++ {
+			mapX, mapY := gameCamera.X + x, gameCamera.Y + y
+			if gameMap.Tiles[mapX][mapY].Blocked == true {
 				blt.Color(blt.ColorFromName("gray"))
 				blt.Print(x, y, "#")
 			} else {
@@ -125,6 +133,11 @@ func renderMap() {
 
 func renderAll() {
 	// Convenience function to render all entities, followed by rendering the game map
+
+	// Before anything is rendered, update the camera position, so it is centered (if possible) on the player
+	// Only things wintin the cameras viewport will be drawn to the screen
+	gameCamera.MoveCamera(player.X, player.Y, MapWidth, MapHeight)
+
 	renderMap()
 	renderEntities()
 }

@@ -18,15 +18,15 @@ func (e *GameEntity) Move(dx int, dy int) {
 	e.Y += dy
 }
 
-func (e *GameEntity) Draw() {
+func (e *GameEntity) Draw(mapX int, mapY int) {
 	// Draw the entity to the screen
 	blt.Layer(e.Layer)
 	blt.Color(blt.ColorFromName(e.Color))
-	blt.Print(e.X, e.Y, e.Char)
+	blt.Print(mapX, mapY, e.Char)
 }
 
-func (e *GameEntity) Clear() {
+func (e *GameEntity) Clear(mapX int, mapY int) {
 	// Remove the entity from the screen
 	blt.Layer(e.Layer)
-	blt.Print(e.X, e.Y, " ")
+	blt.Print(mapX, mapY, " ")
 }
