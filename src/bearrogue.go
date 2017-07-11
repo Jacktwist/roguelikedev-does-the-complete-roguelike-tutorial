@@ -47,9 +47,13 @@ func init() {
 	npc := &entity.GameEntity{X: 10, Y: 10, Layer: 0, Char: "N", Color: "red"}
 	entities = append(entities, player, npc)
 
-	// Create a GameMap, and initialize it
+	// Create a GameMap, and initialize it (and set the player position within it, for now)
 	gameMap = &gamemap.Map{Width: MapWidth, Height: MapHeight}
 	gameMap.InitializeMap()
+
+	playerX, playerY := gameMap.GenerateCavern()
+	player.X = playerX
+	player.Y = playerY
 
 	// Initialize a camera object
 	gameCamera = &camera.GameCamera{X: 1, Y:1, Width: WindowSizeX, Height: WindowSizeY}
@@ -109,8 +113,8 @@ func handleInput(key int, player *entity.GameEntity) {
 func renderEntities() {
 	// Draw every Entity present in the game. This gets called on each iteration of the game loop.
 	for _, e := range entities {
-		mapX, mapY := gameCamera.ToCameraCoordinates(e.X, e.Y)
-		e.Draw(mapX, mapY)
+		cameraX, cameraY := gameCamera.ToCameraCoordinates(e.X, e.Y)
+		e.Draw(cameraX, cameraY)
 	}
 }
 
