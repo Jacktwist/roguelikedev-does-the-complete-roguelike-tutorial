@@ -4,6 +4,7 @@ import (
 	blt "bearlibterminal"
 	"camera"
 	"entity"
+	"fov"
 	"gamemap"
 	"strconv"
 )
@@ -11,8 +12,8 @@ import (
 const (
 	WindowSizeX = 100
 	WindowSizeY = 35
-	MapWidth = 200
-	MapHeight = 200
+	MapWidth = 150
+	MapHeight = 150
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
@@ -23,6 +24,7 @@ var (
 	entities []*entity.GameEntity
 	gameMap *gamemap.Map
 	gameCamera *camera.GameCamera
+	fieldOfView *fov.FieldOfVision
 )
 
 func init() {
@@ -57,6 +59,11 @@ func init() {
 
 	// Initialize a camera object
 	gameCamera = &camera.GameCamera{X: 1, Y:1, Width: WindowSizeX, Height: WindowSizeY}
+
+	// Initialize a FoV object
+	fieldOfView = &fov.FieldOfVision{}
+	fieldOfView.Initialize()
+	fieldOfView.SetTorchRadius(6)
 }
 	
 func main() {
@@ -114,22 +121,49 @@ func renderEntities() {
 	// Draw every Entity present in the game. This gets called on each iteration of the game loop.
 	for _, e := range entities {
 		cameraX, cameraY := gameCamera.ToCameraCoordinates(e.X, e.Y)
-		e.Draw(cameraX, cameraY)
+		if gameMap.Tiles[e.X][e.Y].Visible {
+			e.Draw(cameraX, cameraY)
+		}
 	}
 }
 
 func renderMap() {
 	// Render the game map. If a tile is blocked and blocks sight, draw a '#', if it is not blocked, and does not block
 	// sight, draw a '.'
-	for y := 0; y < gameCamera.Height; y++ {
-		for x := 0; x < gameCamera.Width; x++ {
+
+	// First, set the entire map to not visible. We'll decide what is visible based on the torch radius.
+	// In the process, clear every Tile on the map as well
+	for x := 0; x < gameMap.Width; x++ {
+		for y := 0; y < gameMap.Height; y++ {
+			gameMap.Tiles[x][y].Visible = false
+			blt.Print(x, y, " ")
+		}
+	}
+
+	// Next figure out what is visible to the player, and what is not.
+	fieldOfView.RayCast(player.X, player.Y, gameMap, gameCamera)
+
+	// Now draw each tile that should appear on the screen, if its visible, or explored
+	for x := 0; x < gameCamera.Width; x++ {
+		for y := 0; y < gameCamera.Height; y++ {
 			mapX, mapY := gameCamera.X + x, gameCamera.Y + y
-			if gameMap.Tiles[mapX][mapY].Blocked == true {
-				blt.Color(blt.ColorFromName("gray"))
-				blt.Print(x, y, "#")
-			} else {
-				blt.Color(blt.ColorFromName("brown"))
-				blt.Print(x, y, ".")
+
+			if gameMap.Tiles[mapX][mapY].Visible {
+				if gameMap.Tiles[mapX][mapY].IsWall() {
+					blt.Color(blt.ColorFromName("white"))
+					blt.Print(x, y, "#")
+				} else {
+					blt.Color(blt.ColorFromName("white"))
+					blt.Print(x, y, ".")
+				}
+			} else if gameMap.Tiles[mapX][mapY].Explored {
+				if gameMap.Tiles[mapX][mapY].IsWall() {
+					blt.Color(blt.ColorFromName("gray"))
+					blt.Print(x, y, "#")
+				} else {
+					blt.Color(blt.ColorFromName("gray"))
+					blt.Print(x, y, ".")
+				}
 			}
 		}
 	}
@@ -139,7 +173,7 @@ func renderAll() {
 	// Convenience function to render all entities, followed by rendering the game map
 
 	// Before anything is rendered, update the camera position, so it is centered (if possible) on the player
-	// Only things wintin the cameras viewport will be drawn to the screen
+	// Only things within the cameras viewport will be drawn to the screen
 	gameCamera.MoveCamera(player.X, player.Y, MapWidth, MapHeight)
 
 	renderMap()

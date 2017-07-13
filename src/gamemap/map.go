@@ -24,20 +24,18 @@ type Tile struct {
 	Blocked bool
 	Blocks_sight bool
 	Visited bool
+	Explored bool
+	Visible bool
 	X int
 	Y int
 }
 
-func (t *Tile) isWall() bool {
+func (t *Tile) IsWall() bool {
 	if t.Blocks_sight && t.Blocked {
 		return true
 	} else {
 		return false
 	}
-}
-
-func (t *Tile) isVisited() bool {
-	return t.Visited
 }
 
 type Map struct {
@@ -71,9 +69,9 @@ func (m *Map) GenerateArena() {
 	for x := 0; x < m.Width; x++ {
 		for y := 0; y < m.Height; y++ {
 			if x == 0 || x == m.Width- 1 || y == 0 || y == m.Height- 1 {
-				m.Tiles[x][y] = &Tile{true, true, false, x, y}
+				m.Tiles[x][y] = &Tile{true, true, false, false, false, x, y}
 			} else {
-				m.Tiles[x][y] = &Tile{false, false, false, x, y}
+				m.Tiles[x][y] = &Tile{false, false, false, false, false, x, y}
 			}
 		}
 	}
@@ -87,9 +85,9 @@ func (m *Map) GenerateCavern() (int, int) {
 		for y := 0; y < m.Height; y++ {
 			state := rand.Intn(100)
 			if state < 50 {
-				m.Tiles[x][y] = &Tile{true, true, false, x, y}
+				m.Tiles[x][y] = &Tile{true, true, false, false, false, x, y}
 			} else {
-				m.Tiles[x][y] = &Tile{false, false, false, x, y}
+				m.Tiles[x][y] = &Tile{false, false, false, false, false, x, y}
 			}
 		}
 	}
@@ -160,7 +158,7 @@ func (m *Map) GenerateCavern() (int, int) {
 			tile = m.Tiles[x][y]
 
 			// If the current tile is a wall, or has already been visited, ignore it and move on
-			if !tile.isVisited() && !tile.isWall() {
+			if !tile.Visited && !tile.IsWall() {
 				// This is a non-wall, unvisited tile
 				cavern = append(cavern, m.Tiles[x][y])
 
@@ -170,28 +168,28 @@ func (m *Map) GenerateCavern() (int, int) {
 					node = cavern[len(cavern)-1]
 					cavern = cavern[:len(cavern)-1]
 
-					if !node.isVisited() && !node.isWall() {
+					if !node.Visited && !node.IsWall() {
+						// Mark the node as visited, and add it to the cavern area for this cavern
 						node.Visited = true
-						iterations ++
 						totalCavernArea = append(totalCavernArea, node)
 
 						// Add the tile to the west, if valid
-						if node.X - 1 > 0 && !m.Tiles[node.X -1][node.Y].isWall() {
+						if node.X - 1 > 0 && !m.Tiles[node.X -1][node.Y].IsWall() {
 							cavern = append(cavern, m.Tiles[node.X -1][node.Y])
 						}
 
 						// Add the tile to east, if valid
-						if node.X + 1 < m.Width && !m.Tiles[node.X + 1][node.Y].isWall() {
+						if node.X + 1 < m.Width && !m.Tiles[node.X + 1][node.Y].IsWall() {
 							cavern = append(cavern, m.Tiles[node.X + 1][node.Y])
 						}
 
 						// Add the tile to north, if valid
-						if node.Y - 1 > 0 && !m.Tiles[node.X][node.Y - 1].isWall() {
+						if node.Y - 1 > 0 && !m.Tiles[node.X][node.Y - 1].IsWall() {
 							cavern = append(cavern, m.Tiles[node.X][node.Y - 1])
 						}
 
 						// Add the tile to south, if valid
-						if node.Y + 1 < m.Height && !m.Tiles[node.X][node.Y + 1].isWall() {
+						if node.Y + 1 < m.Height && !m.Tiles[node.X][node.Y + 1].IsWall() {
 							cavern = append(cavern, m.Tiles[node.X][node.Y + 1])
 						}
 					}
@@ -224,6 +222,8 @@ func (m *Map) GenerateCavern() (int, int) {
 	// Finally, choose a starting position for the player within the newly created cave
 	pos := rand.Int() % len(mainCave)
 	return mainCave[pos].X, mainCave[pos].Y
+
+	return 0, 0
 }
 
 func (m *Map) countWallsNStepsAway(n int, x int, y int) int {
