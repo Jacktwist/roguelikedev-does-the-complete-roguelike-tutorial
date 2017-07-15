@@ -63,7 +63,7 @@ func init() {
 	// Initialize a FoV object
 	fieldOfView = &fov.FieldOfVision{}
 	fieldOfView.Initialize()
-	fieldOfView.SetTorchRadius(6)
+	fieldOfView.SetTorchRadius(500)
 }
 	
 func main() {
@@ -120,11 +120,16 @@ func handleInput(key int, player *entity.GameEntity) {
 func renderEntities() {
 	// Draw every Entity present in the game. This gets called on each iteration of the game loop.
 	for _, e := range entities {
-		cameraX, cameraY := gameCamera.ToCameraCoordinates(e.X, e.Y)
-		if gameMap.Tiles[e.X][e.Y].Visible {
-			e.Draw(cameraX, cameraY)
+		if e != player {
+			cameraX, cameraY := gameCamera.ToCameraCoordinates(e.X, e.Y)
+			if gameMap.Tiles[e.X][e.Y].Visible {
+				e.Draw(cameraX, cameraY)
+			}
 		}
 	}
+
+	cameraX, cameraY := gameCamera.ToCameraCoordinates(player.X, player.Y)
+	player.Draw(cameraX, cameraY)
 }
 
 func renderMap() {
@@ -141,7 +146,7 @@ func renderMap() {
 	}
 
 	// Next figure out what is visible to the player, and what is not.
-	fieldOfView.RayCast(player.X, player.Y, gameMap, gameCamera)
+	fieldOfView.RayCast(player.X, player.Y, gameMap)
 
 	// Now draw each tile that should appear on the screen, if its visible, or explored
 	for x := 0; x < gameCamera.Width; x++ {

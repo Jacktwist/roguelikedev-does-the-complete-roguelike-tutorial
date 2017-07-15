@@ -3,7 +3,6 @@ package fov
 import (
 	"math"
 	"gamemap"
-	"camera"
 )
 
 type FieldOfVision struct {
@@ -27,12 +26,12 @@ func (f *FieldOfVision) Initialize() {
 }
 
 func (f *FieldOfVision) SetTorchRadius(radius int) {
-	if radius > 0 {
+	if radius > 1 {
 		f.torchRadius = radius
 	}
 }
 
-func (f *FieldOfVision) RayCast(playerX, playerY int, gameMap *gamemap.Map, gameCamera *camera.GameCamera) {
+func (f *FieldOfVision) RayCast(playerX, playerY int, gameMap *gamemap.Map) {
 	// Cast out rays each degree in a 360 circle from the player. If a ray passes over a floor (does not block sight)
 	// tile, keep going, up to the maximum torch radius (view radius) of the player. If the ray intersects a wall
 	// (blocks sight), stop, as the player will not be able to see past that. Every visible tile will get the Visible
@@ -53,18 +52,27 @@ func (f *FieldOfVision) RayCast(playerX, playerY int, gameMap *gamemap.Map, game
 			x -= ax
 			y -= ay
 
+			roundedX := int(Round(x))
+			roundedY := int(Round(y))
+
 			if x < 0 || x > float64(gameMap.Width - 1) || y < 0 || y > float64(gameMap.Height - 1) {
 				// If the ray is cast outside of the map, stop
 				break
 			}
 
-			gameMap.Tiles[int(x)][int(y)].Explored = true
-			gameMap.Tiles[int(x)][int(y)].Visible = true
+			gameMap.Tiles[roundedX][roundedY].Explored = true
+			gameMap.Tiles[roundedX][roundedY].Visible = true
 
-			if gameMap.Tiles[int(x)][int(y)].Blocks_sight == true {
+			//fmt.Printf("Actual X (float64): %d, rounded X (int): %d\n", x, int(Round(x)))
+
+			if gameMap.Tiles[roundedX][roundedY].Blocks_sight == true {
 				// The ray hit a wall, go no further
 				break
 			}
 		}
 	}
+}
+
+func Round(f float64) float64 {
+	return math.Floor(f + .5)
 }
