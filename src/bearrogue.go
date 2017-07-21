@@ -135,14 +135,22 @@ func handleInput(key int, player *entity.GameEntity) {
 	)
 
 	switch key {
-	case blt.TK_RIGHT:
+	case blt.TK_RIGHT, blt.TK_L:
 		dx, dy = 1, 0
-	case blt.TK_LEFT:
+	case blt.TK_LEFT, blt.TK_H:
 		dx, dy = -1, 0
-	case blt.TK_UP:
+	case blt.TK_UP, blt.TK_K:
 		dx, dy = 0, -1
-	case blt.TK_DOWN:
+	case blt.TK_DOWN, blt.TK_J:
 		dx, dy = 0, 1
+	case blt.TK_Y:
+		dx, dy = -1, -1
+	case blt.TK_U:
+		dx, dy = 1, -1
+	case blt.TK_B:
+		dx, dy = -1, 1
+	case blt.TK_N:
+		dx, dy = 1, 1
 	}
 
 	// Check to ensure that the tile the player is trying to move in to is a valid move (not blocked)
