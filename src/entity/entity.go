@@ -10,6 +10,7 @@ type GameEntity struct {
 	Layer int
 	Char string
 	Color string
+	Blocks bool
 }
 
 func (e *GameEntity) Move(dx int, dy int) {

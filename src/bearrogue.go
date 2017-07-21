@@ -7,6 +7,7 @@ import (
 	"fov"
 	"gamemap"
 	"strconv"
+	"ui"
 )
 
 const (
@@ -19,6 +20,8 @@ const (
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
+	PlayerTurn = iota
+	MobTurn = iota
 )
 
 var (
@@ -27,7 +30,8 @@ var (
 	gameMap *gamemap.Map
 	gameCamera *camera.GameCamera
 	fieldOfView *fov.FieldOfVision
-	messageLog []string
+	gameTurn int
+	messageLog *ui.MessageLog
 )
 
 func init() {
@@ -49,8 +53,7 @@ func init() {
 
 	// Create a player Entity and an NPC entity, and add them to our slice of Entities
 	player = &entity.GameEntity{X: 1, Y: 1, Layer: 1, Char: "@", Color: "white"}
-	npc := &entity.GameEntity{X: 10, Y: 10, Layer: 0, Char: "N", Color: "red"}
-	entities = append(entities, player, npc)
+	entities = append(entities, player)
 
 	// Create a GameMap, and initialize it (and set the player position within it, for now)
 	gameMap = &gamemap.Map{Width: MapWidth, Height: MapHeight}
@@ -60,6 +63,9 @@ func init() {
 	player.X = playerX
 	player.Y = playerY
 
+	// Set the current turn to the player, so they may act first
+	gameTurn = PlayerTurn
+
 	// Initialize a camera object
 	gameCamera = &camera.GameCamera{X: 1, Y:1, Width: ViewAreaX, Height: ViewAreaY}
 
@@ -68,15 +74,17 @@ func init() {
 	fieldOfView.Initialize()
 	fieldOfView.SetTorchRadius(500)
 
-	messageLog = make([]string, 0)
-	sendMessage("You find yourself in the caverns of eternal sadness...you start to feel a little more sad.")
+	// Set up the messageLog, and output a "welcome" message
+	messageLog = &ui.MessageLog{MaxLength: 100}
+	messageLog.InitMessages(100)
+	messageLog.SendMessage("You find yourself in the caverns of eternal sadness...you start to feel a little more sad.")
 }
 	
 func main() {
 	// Main game loop
 
 	renderAll()
-	printMessages()
+	messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
 
 	for {
 		blt.Refresh()
@@ -96,7 +104,7 @@ func main() {
 		}
 
 		renderAll()
-		printMessages()
+		messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
 	}
 
 	blt.Close()
@@ -193,40 +201,3 @@ func renderAll() {
 	renderMap()
 	renderEntities()
 }
-
-func sendMessage(message string) {
-	// Prepend the message onto the messageLog slice
-	if len(messageLog) >= 99 {
-		// Throw away any messages that exceed our total queue size
-		messageLog = messageLog[:len(messageLog)-1]
-	}
-	messageLog = append([]string{message}, messageLog...)
-}
-
-func clearMessages() {
-	// Clear the message area, so our messages do not overlap
-	blt.ClearArea(0, ViewAreaY, WindowSizeX, WindowSizeY - ViewAreaY)
-}
-
-func printMessages() {
-	// Print the latest five messages from the messageLog. These will be printed in reverse order (newest at the top),
-	// to make it appear they are scrolling down the screen
-	clearMessages()
-
-	toShow := 0
-
-	if len(messageLog) <= 5 {
-		// Just loop through the messageLog, printing them in reverse order
-		toShow = len(messageLog)
-	} else {
-		// If we have more than 5 messages stored, just show the five most recent
-		toShow = 5
-	}
-
-	blt.Color(blt.ColorFromName("white"))
-	blt.Layer(1)
-	for i := toShow; i > 0; i-- {
-		blt.Print(1, (ViewAreaY - 1) + i, messageLog[i - 1])
-	}
-}
-
