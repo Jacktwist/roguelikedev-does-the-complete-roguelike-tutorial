@@ -15,8 +15,8 @@ const (
 	WindowSizeY = 35
 	ViewAreaX = 100
 	ViewAreaY = 30
-	MapWidth = 150
-	MapHeight = 150
+	MapWidth = 100
+	MapHeight = 35
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
@@ -31,7 +31,7 @@ var (
 	gameCamera *camera.GameCamera
 	fieldOfView *fov.FieldOfVision
 	gameTurn int
-	messageLog *ui.MessageLog
+	messageLog ui.MessageLog
 )
 
 func init() {
@@ -59,9 +59,11 @@ func init() {
 	gameMap = &gamemap.Map{Width: MapWidth, Height: MapHeight}
 	gameMap.InitializeMap()
 
-	playerX, playerY := gameMap.GenerateCavern()
+	playerX, playerY, mapEntities := gameMap.GenerateCavern()
 	player.X = playerX
 	player.Y = playerY
+
+	entities = append(entities, mapEntities...)
 
 	// Set the current turn to the player, so they may act first
 	gameTurn = PlayerTurn
@@ -72,19 +74,19 @@ func init() {
 	// Initialize a FoV object
 	fieldOfView = &fov.FieldOfVision{}
 	fieldOfView.Initialize()
-	fieldOfView.SetTorchRadius(500)
+	fieldOfView.SetTorchRadius(6)
 
 	// Set up the messageLog, and output a "welcome" message
-	messageLog = &ui.MessageLog{MaxLength: 100}
-	messageLog.InitMessages(100)
-	messageLog.SendMessage("You find yourself in the caverns of eternal sadness...you start to feel a little more sad.")
+	messageLog = ui.MessageLog{MaxLength: 100}
+	messageLog.InitMessages()
 }
 	
 func main() {
 	// Main game loop
 
-	renderAll()
+	messageLog.SendMessage("You find yourself in the caverns of eternal sadness...you start to feel a little more sad.")
 	messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
+	renderAll()
 
 	for {
 		blt.Refresh()
@@ -98,9 +100,24 @@ func main() {
 		}
 
 		if key != blt.TK_CLOSE {
-			handleInput(key, player)
+			if gameTurn == PlayerTurn {
+				handleInput(key, player)
+			}
 		} else {
 			break
+		}
+
+		if gameTurn == MobTurn {
+			for _, e := range entities {
+				if e != player {
+					if gameMap.Tiles[e.X][e.Y].Visible {
+						// Check to ensure that the entity is visible before allowing it to message the player
+						// This will change soon, as entities will act whether the player can see them or not.
+						messageLog.SendMessage("The " + e.Name + " waits patiently.")
+					}
+				}
+			}
+			gameTurn = PlayerTurn
 		}
 
 		renderAll()
@@ -130,8 +147,16 @@ func handleInput(key int, player *entity.GameEntity) {
 
 	// Check to ensure that the tile the player is trying to move in to is a valid move (not blocked)
 	if !gameMap.IsBlocked(player.X + dx, player.Y + dy) {
-		player.Move(dx, dy)
+		target := entity.GetBlockingEntitiesAtLocation(entities, player.X + dx, player.Y + dy)
+		if target != nil {
+			messageLog.SendMessage("You harmlessly bump into the " + target.Name)
+		} else {
+			player.Move(dx, dy)
+		}
 	}
+
+	// Switch the game turn to the Mobs turn
+	gameTurn = MobTurn
 }
 
 func renderEntities() {

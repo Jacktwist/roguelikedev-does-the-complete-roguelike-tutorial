@@ -9,8 +9,8 @@ type MessageLog struct {
 	MaxLength int
 }
 
-func (ml *MessageLog) InitMessages(maxLength int) {
-	ml.messages = make([]string, maxLength)
+func (ml *MessageLog) InitMessages() {
+	ml.messages = make([]string, ml.MaxLength)
 }
 
 func (ml *MessageLog) SendMessage(message string) {

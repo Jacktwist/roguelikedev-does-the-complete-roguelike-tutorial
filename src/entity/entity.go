@@ -10,6 +10,7 @@ type GameEntity struct {
 	Layer int
 	Char string
 	Color string
+	Name string
 	Blocks bool
 }
 
@@ -30,4 +31,14 @@ func (e *GameEntity) Clear(mapX int, mapY int) {
 	// Remove the entity from the screen
 	blt.Layer(e.Layer)
 	blt.Print(mapX, mapY, " ")
+}
+
+func GetBlockingEntitiesAtLocation(entities []*GameEntity, destinationX, destinationY int) *GameEntity {
+	// Return any entities that are at the destination location which would block movement
+	for _, e := range entities {
+		if e.Blocks && e.X == destinationX && e.Y == destinationY {
+			return e
+		}
+	}
+	return nil
 }
