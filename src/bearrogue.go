@@ -15,8 +15,8 @@ const (
 	WindowSizeY = 35
 	ViewAreaX = 100
 	ViewAreaY = 30
-	MapWidth = 100
-	MapHeight = 35
+	MapWidth = 200
+	MapHeight = 200
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
