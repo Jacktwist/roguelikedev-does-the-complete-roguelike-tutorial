@@ -3,7 +3,7 @@ package main
 import (
 	blt "bearlibterminal"
 	"camera"
-	"entity"
+	"ecs"
 	"fov"
 	"gamemap"
 	"strconv"
@@ -25,8 +25,8 @@ const (
 )
 
 var (
-	player *entity.GameEntity
-	entities []*entity.GameEntity
+	player *ecs.GameEntity
+	entities []*ecs.GameEntity
 	gameMap *gamemap.Map
 	gameCamera *camera.GameCamera
 	fieldOfView *fov.FieldOfVision
@@ -51,19 +51,32 @@ func init() {
 	blt.Set(window + "; " + font)
 	blt.Clear()
 
-	// Create a player Entity and an NPC entity, and add them to our slice of Entities
-	player = &entity.GameEntity{X: 1, Y: 1, Layer: 1, Char: "@", Color: "white"}
+	// Create a player Entity, and add them to our slice of Entities
+	player = ecs.NewGameEntity()
+	player.AddComponent("player", ecs.PlayerComponent{})
+	player.AddComponent("position", ecs.PositionComponent{X: 0, Y: 0})
+	player.AddComponent("appearance", ecs.AppearanceComponent{Color: "white", Character: "@", Layer: 1})
+	player.AddComponent("movement", ecs.MovementComponent{})
+	player.AddComponent("controllable", ecs.ControllableComponent{})
+
 	entities = append(entities, player)
 
 	// Create a GameMap, and initialize it (and set the player position within it, for now)
 	gameMap = &gamemap.Map{Width: MapWidth, Height: MapHeight}
 	gameMap.InitializeMap()
 
-	playerX, playerY, mapEntities := gameMap.GenerateCavern()
-	player.X = playerX
-	player.Y = playerY
+	playerX, playerY:= gameMap.GenerateCavern()
 
-	entities = append(entities, mapEntities...)
+	if player.HasComponent("position") {
+		positionComponent, _ := player.Components["position"].(ecs.PositionComponent)
+		positionComponent.X = playerX
+		positionComponent.Y = playerY
+		player.RemoveComponent("position")
+		player.AddComponent("position", positionComponent)
+		player.Print()
+	}
+
+	//entities = append(entities, mapEntities...)
 
 	// Set the current turn to the player, so they may act first
 	gameTurn = PlayerTurn
@@ -86,7 +99,8 @@ func main() {
 
 	messageLog.SendMessage("You find yourself in the caverns of eternal sadness...you start to feel a little more sad.")
 	messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
-	renderAll()
+	renderMap()
+	ecs.SystemRender(entities, gameCamera, gameMap)
 
 	for {
 		blt.Refresh()
@@ -94,41 +108,41 @@ func main() {
 		key := blt.Read()
 
 		// Clear each Entity off the screen
-		for _, e := range entities {
-			mapX, mapY := gameCamera.ToCameraCoordinates(e.X, e.Y)
-			e.Clear(mapX, mapY)
-		}
+		ecs.SystemClear(entities, gameCamera)
 
 		if key != blt.TK_CLOSE {
 			if gameTurn == PlayerTurn {
-				handleInput(key, player)
+				if player.HasComponents([]string{"movement", "controllable", "position"}) {
+					handleInput(key, player)
+				}
 			}
 		} else {
 			break
 		}
 
-		if gameTurn == MobTurn {
-			for _, e := range entities {
-				if e != player {
-					if gameMap.Tiles[e.X][e.Y].Visible {
-						// Check to ensure that the entity is visible before allowing it to message the player
-						// This will change soon, as entities will act whether the player can see them or not.
-						messageLog.SendMessage("The " + e.Name + " waits patiently.")
-					}
-				}
-			}
-			gameTurn = PlayerTurn
-		}
+		//if gameTurn == MobTurn {
+		//	for _, e := range entities {
+		//		if e != player {
+		//			if gameMap.Tiles[e.X][e.Y].Visible {
+		//				// Check to ensure that the ecs is visible before allowing it to message the player
+		//				// This will change soon, as entities will act whether the player can see them or not.
+		//				messageLog.SendMessage("The " + e.Name + " waits patiently.")
+		//			}
+		//		}
+		//	}
+		//	gameTurn = PlayerTurn
+		//}
 
-		renderAll()
+		renderMap()
+		ecs.SystemRender(entities, gameCamera, gameMap)
 		messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
 	}
 
 	blt.Close()
 }
 
-func handleInput(key int, player *entity.GameEntity) {
-	// Handle basic character movement in the four main directions
+func handleInput(key int, entity *ecs.GameEntity) {
+	// Handle basic character movement in the four main directions, plus diagonals (and vim keys)
 
 	var (
 		dx, dy int
@@ -154,32 +168,20 @@ func handleInput(key int, player *entity.GameEntity) {
 	}
 
 	// Check to ensure that the tile the player is trying to move in to is a valid move (not blocked)
-	if !gameMap.IsBlocked(player.X + dx, player.Y + dy) {
-		target := entity.GetBlockingEntitiesAtLocation(entities, player.X + dx, player.Y + dy)
-		if target != nil {
-			messageLog.SendMessage("You harmlessly bump into the " + target.Name)
-		} else {
-			player.Move(dx, dy)
-		}
+	positionComponent, _ := player.Components["position"].(ecs.PositionComponent)
+
+	if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
+		//target := ecs.GetBlockingEntitiesAtLocation(entities, player.X + dx, player.Y + dy)
+		//if target != nil {
+		//	messageLog.SendMessage("You harmlessly bump into the " + target.Name)
+		//} else {
+		//	player.Move(dx, dy)
+		//}
+		ecs.SystemMovement(entity, dx, dy)
 	}
 
 	// Switch the game turn to the Mobs turn
-	gameTurn = MobTurn
-}
-
-func renderEntities() {
-	// Draw every Entity present in the game. This gets called on each iteration of the game loop.
-	for _, e := range entities {
-		if e != player {
-			cameraX, cameraY := gameCamera.ToCameraCoordinates(e.X, e.Y)
-			if gameMap.Tiles[e.X][e.Y].Visible {
-				e.Draw(cameraX, cameraY)
-			}
-		}
-	}
-
-	cameraX, cameraY := gameCamera.ToCameraCoordinates(player.X, player.Y)
-	player.Draw(cameraX, cameraY)
+	//gameTurn = MobTurn
 }
 
 func renderMap() {
@@ -195,8 +197,14 @@ func renderMap() {
 		}
 	}
 
-	// Next figure out what is visible to the player, and what is not.
-	fieldOfView.RayCast(player.X, player.Y, gameMap)
+	positionComponent, posOk := player.Components["position"].(ecs.PositionComponent)
+
+	if posOk {
+		gameCamera.MoveCamera(positionComponent.X, positionComponent.Y, MapWidth, MapHeight)
+
+		// Next figure out what is visible to the player, and what is not.
+		fieldOfView.RayCast(positionComponent.X, positionComponent.Y, gameMap)
+	}
 
 	// Now draw each tile that should appear on the screen, if its visible, or explored
 	for x := 0; x < gameCamera.Width; x++ {
@@ -224,13 +232,3 @@ func renderMap() {
 	}
 }
 
-func renderAll() {
-	// Convenience function to render all entities, followed by rendering the game map
-
-	// Before anything is rendered, update the camera position, so it is centered (if possible) on the player
-	// Only things within the cameras viewport will be drawn to the screen
-	gameCamera.MoveCamera(player.X, player.Y, MapWidth, MapHeight)
-
-	renderMap()
-	renderEntities()
-}

@@ -3,10 +3,10 @@ package gamemap
 import (
 	"sort"
 	"math/rand"
-	"entity"
+//	"ecs"
 )
 
-func (m *Map) GenerateCavern() (int, int, []*entity.GameEntity) {
+func (m *Map) GenerateCavern() (int, int) {
 
 	// Step 1: Fill the map space with a random assortment of walls and floors. This uses a roughly 40/60 ratio in favor
 	// of floors, as I've found that to produce the nicest results.
@@ -149,11 +149,11 @@ func (m *Map) GenerateCavern() (int, int, []*entity.GameEntity) {
 	}
 
 	// Populate the cavern with some nasty critters
-	entities := populateCavern(mainCave)
+	//entities := populateCavern(mainCave)
 
 	// Finally, choose a starting position for the player within the newly created cave
 	pos := rand.Int() % len(mainCave)
-	return mainCave[pos].X, mainCave[pos].Y, entities
+	return mainCave[pos].X, mainCave[pos].Y
 }
 
 func (m *Map) countWallsNStepsAway(n int, x int, y int) int {
@@ -174,45 +174,45 @@ func (m *Map) countWallsNStepsAway(n int, x int, y int) int {
 	return wallCount
 }
 
-func populateCavern(mainCave []*Tile) []*entity.GameEntity {
-	// Randomly sprinkle some Orcs, Trolls, and Goblins around the newly created cavern
-	var entities []*entity.GameEntity
-	var createdEntity *entity.GameEntity
-
-	for i := 0; i < 2; i++ {
-		x := 0
-		y := 0
-		locationFound := false
-		for j := 0; j <= 50; j++ {
-			// Attempt to find a clear location to create a mob (entity for now)
-			pos := rand.Int() % len(mainCave)
-			x = mainCave[pos].X
-			y = mainCave[pos].Y
-			if entity.GetBlockingEntitiesAtLocation(entities, x, y) == nil {
-				locationFound = true
-				break
-			}
-		}
-
-		if locationFound {
-			chance := rand.Intn(100)
-			if chance <= 25 {
-				// Create a Troll
-				createdEntity = &entity.GameEntity{X: x, Y: y, Layer: 1, Char: "T", Color: "dark green", Blocks: true, Name: "Troll"}
-			} else if chance > 25 && chance <= 50 {
-				// Create an Orc
-				createdEntity = &entity.GameEntity{X: x, Y: y, Layer: 1, Char: "o", Color: "darker green", Blocks: true, Name: "Orc"}
-			} else {
-				// Create a Goblin
-				createdEntity = &entity.GameEntity{X: x, Y: y, Layer: 1, Char: "g", Color: "green", Blocks: true, Name: "Goblin"}
-			}
-
-			entities = append(entities, createdEntity)
-		} else {
-			// No location was found after 50 tries, which means the map is quite full. Stop here and return.
-			break
-		}
-	}
-
-	return entities
-}
+//func populateCavern(mainCave []*Tile) []*ecs.GameEntity {
+//	// Randomly sprinkle some Orcs, Trolls, and Goblins around the newly created cavern
+//	var entities []*ecs.GameEntity
+//	var createdEntity *ecs.GameEntity
+//
+//	for i := 0; i < 2; i++ {
+//		x := 0
+//		y := 0
+//		locationFound := false
+//		for j := 0; j <= 50; j++ {
+//			// Attempt to find a clear location to create a mob (ecs for now)
+//			pos := rand.Int() % len(mainCave)
+//			x = mainCave[pos].X
+//			y = mainCave[pos].Y
+//			if ecs.GetBlockingEntitiesAtLocation(entities, x, y) == nil {
+//				locationFound = true
+//				break
+//			}
+//		}
+//
+//		if locationFound {
+//			chance := rand.Intn(100)
+//			if chance <= 25 {
+//				// Create a Troll
+//				createdEntity = &ecs.GameEntity{X: x, Y: y, Layer: 1, Char: "T", Color: "dark green", Blocks: true, Name: "Troll"}
+//			} else if chance > 25 && chance <= 50 {
+//				// Create an Orc
+//				createdEntity = &ecs.GameEntity{X: x, Y: y, Layer: 1, Char: "o", Color: "darker green", Blocks: true, Name: "Orc"}
+//			} else {
+//				// Create a Goblin
+//				createdEntity = &ecs.GameEntity{X: x, Y: y, Layer: 1, Char: "g", Color: "green", Blocks: true, Name: "Goblin"}
+//			}
+//
+//			entities = append(entities, createdEntity)
+//		} else {
+//			// No location was found after 50 tries, which means the map is quite full. Stop here and return.
+//			break
+//		}
+//	}
+//
+//	return entities
+//}
