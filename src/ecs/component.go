@@ -27,6 +27,7 @@ type AppearanceComponent struct {
 	Color string
 	Character string
 	Layer int
+	Name string
 }
 
 func (a AppearanceComponent) IsComponent() bool {
@@ -48,6 +49,42 @@ type ControllableComponent struct {
 }
 
 func (c ControllableComponent) IsComponent() bool {
+	return true
+}
+
+type HitPointComponent struct {
+	Hp int
+}
+
+func (h HitPointComponent) IsComponent() bool {
+	return true
+}
+
+// Attacker Component
+type AttackerComponent struct {
+	Attack int
+	Defense int
+}
+
+func (a AttackerComponent) IsComponent() bool {
+	return true
+}
+
+// Blocking Component
+type BlockingComponent struct {
+
+}
+
+func (b BlockingComponent) IsComponent() bool {
+	return true
+}
+
+// Random Movement Component - wanders aimlessly around the map
+type RandomMovementComponent struct {
+
+}
+
+func (r RandomMovementComponent) IsComponent() bool {
 	return true
 }
 

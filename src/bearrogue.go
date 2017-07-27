@@ -8,6 +8,7 @@ import (
 	"gamemap"
 	"strconv"
 	"ui"
+	"math/rand"
 )
 
 const (
@@ -55,9 +56,12 @@ func init() {
 	player = ecs.NewGameEntity()
 	player.AddComponent("player", ecs.PlayerComponent{})
 	player.AddComponent("position", ecs.PositionComponent{X: 0, Y: 0})
-	player.AddComponent("appearance", ecs.AppearanceComponent{Color: "white", Character: "@", Layer: 1})
+	player.AddComponent("appearance", ecs.AppearanceComponent{Color: "white", Character: "@", Layer: 1, Name: "You"})
 	player.AddComponent("movement", ecs.MovementComponent{})
 	player.AddComponent("controllable", ecs.ControllableComponent{})
+	player.AddComponent("attacker", ecs.AttackerComponent{Attack: 2, Defense: 2})
+	player.AddComponent("hitpoints", ecs.HitPointComponent{Hp: 10})
+	player.AddComponent("block", ecs.BlockingComponent{})
 
 	entities = append(entities, player)
 
@@ -65,7 +69,7 @@ func init() {
 	gameMap = &gamemap.Map{Width: MapWidth, Height: MapHeight}
 	gameMap.InitializeMap()
 
-	playerX, playerY:= gameMap.GenerateCavern()
+	playerX, playerY, mapEntities := GenerateAndPopulateCavern()
 
 	if player.HasComponent("position") {
 		positionComponent, _ := player.Components["position"].(ecs.PositionComponent)
@@ -76,7 +80,7 @@ func init() {
 		player.Print()
 	}
 
-	//entities = append(entities, mapEntities...)
+	entities = append(entities, mapEntities...)
 
 	// Set the current turn to the player, so they may act first
 	gameTurn = PlayerTurn
@@ -120,18 +124,14 @@ func main() {
 			break
 		}
 
-		//if gameTurn == MobTurn {
-		//	for _, e := range entities {
-		//		if e != player {
-		//			if gameMap.Tiles[e.X][e.Y].Visible {
-		//				// Check to ensure that the ecs is visible before allowing it to message the player
-		//				// This will change soon, as entities will act whether the player can see them or not.
-		//				messageLog.SendMessage("The " + e.Name + " waits patiently.")
-		//			}
-		//		}
-		//	}
-		//	gameTurn = PlayerTurn
-		//}
+		if gameTurn == MobTurn {
+			for _, e := range entities {
+				if !e.HasComponent("player") {
+					ecs.SystemMovement(e, 0, 0, entities, gameMap, &messageLog)
+				}
+			}
+			gameTurn = PlayerTurn
+		}
 
 		renderMap()
 		ecs.SystemRender(entities, gameCamera, gameMap)
@@ -167,21 +167,11 @@ func handleInput(key int, entity *ecs.GameEntity) {
 		dx, dy = 1, 1
 	}
 
-	// Check to ensure that the tile the player is trying to move in to is a valid move (not blocked)
-	positionComponent, _ := player.Components["position"].(ecs.PositionComponent)
-
-	if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
-		//target := ecs.GetBlockingEntitiesAtLocation(entities, player.X + dx, player.Y + dy)
-		//if target != nil {
-		//	messageLog.SendMessage("You harmlessly bump into the " + target.Name)
-		//} else {
-		//	player.Move(dx, dy)
-		//}
-		ecs.SystemMovement(entity, dx, dy)
-	}
+	// Fire off the movement system
+	ecs.SystemMovement(entity, dx, dy, entities, gameMap, &messageLog)
 
 	// Switch the game turn to the Mobs turn
-	//gameTurn = MobTurn
+	gameTurn = MobTurn
 }
 
 func renderMap() {
@@ -230,5 +220,77 @@ func renderMap() {
 			}
 		}
 	}
+}
+
+/* Generator functions */
+func GenerateAndPopulateCavern() (int, int, []*ecs.GameEntity) {
+	gameMap := gameMap.GenerateCavern()
+
+	pos := rand.Int() % len(gameMap)
+	playerX, playerY := gameMap[pos].X, gameMap[pos].Y
+
+	entities := populateCavern(gameMap)
+
+	return playerX, playerY, entities
+}
+
+func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
+	// Randomly sprinkle some Orcs, Trolls, and Goblins around the newly created cavern
+	var entities []*ecs.GameEntity
+	var createdEntity *ecs.GameEntity
+
+	for i := 0; i < 2; i++ {
+		x := 0
+		y := 0
+		locationFound := false
+		for j := 0; j <= 50; j++ {
+			// Attempt to find a clear location to create a mob (ecs for now)
+			pos := rand.Int() % len(mainCave)
+			x = mainCave[pos].X
+			y = mainCave[pos].Y
+			if ecs.GetBlockingEntitiesAtLocation(entities, x, y) == nil {
+				locationFound = true
+				break
+			}
+		}
+
+		if locationFound {
+			chance := rand.Intn(100)
+			if chance <= 25 {
+				// Create a Troll
+				createdEntity = ecs.NewGameEntity()
+				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
+					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "T", Color: "dark green", Name: "Troll"},
+					"hitpoints": ecs.HitPointComponent{Hp: 20},
+					"block": ecs.BlockingComponent{},
+					"movement": ecs.MovementComponent{},
+					"random_movement": ecs.RandomMovementComponent{}})
+			} else if chance > 25 && chance <= 50 {
+				// Create an Orc
+				createdEntity = ecs.NewGameEntity()
+				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
+					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "o", Color: "darker green", Name: "Orc"},
+					"hitpoints": ecs.HitPointComponent{Hp: 15},
+					"block": ecs.BlockingComponent{},
+					"movement": ecs.MovementComponent{},
+					"random_movement": ecs.RandomMovementComponent{}})
+			} else {
+				// Create a Goblin
+				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
+					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "g", Color: "green", Name: "Goblin"},
+					"hitpoints": ecs.HitPointComponent{Hp: 5},
+					"block": ecs.BlockingComponent{},
+					"movement": ecs.MovementComponent{},
+					"random_movement": ecs.RandomMovementComponent{}})
+			}
+
+			entities = append(entities, createdEntity)
+		} else {
+			// No location was found after 50 tries, which means the map is quite full. Stop here and return.
+			break
+		}
+	}
+
+	return entities
 }
 

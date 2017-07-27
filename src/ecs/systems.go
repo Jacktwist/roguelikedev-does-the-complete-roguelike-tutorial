@@ -4,6 +4,9 @@ import (
 	blt "bearlibterminal"
 	"camera"
 	"gamemap"
+	"ui"
+	"math/rand"
+	"fmt"
 )
 
 func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *gamemap.Map) {
@@ -40,15 +43,67 @@ func SystemClear(entities []*GameEntity, camera *camera.GameCamera) {
 	}
 }
 
-func SystemMovement(entity *GameEntity, dx, dy int) {
+func SystemMovement(entity *GameEntity, dx, dy int, entities []*GameEntity, gameMap *gamemap.Map, messageLog *ui.MessageLog) {
 	// Allow a moveable and controllable entity to move
 	if entity.HasComponents([]string{"movement", "controllable", "position"}) {
+		// If the current entity is controllable, moveable, and has a position, go ahead and move it
 		positionComponent, _ := entity.Components["position"].(PositionComponent)
 
-		positionComponent.X += dx
-		positionComponent.Y += dy
+		if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
+			target := GetBlockingEntitiesAtLocation(entities, positionComponent.X+dx, positionComponent.Y+dy)
+			if target != nil {
+				SystemAttack(entity, target, messageLog)
+			} else {
+				positionComponent.X += dx
+				positionComponent.Y += dy
 
-		entity.RemoveComponent("position")
-		entity.AddComponent("position", positionComponent)
+				entity.RemoveComponent("position")
+				entity.AddComponent("position", positionComponent)
+			}
+		}
+	} else {
+		// Otherwise, just give it random movement for now
+		//SystemRandomMovement(entity, entities, gameMap, messageLog)
+	}
+}
+
+func SystemRandomMovement(entity *GameEntity, entities []*GameEntity, gameMap *gamemap.Map, messageLog *ui.MessageLog) {
+	if entity.HasComponents([]string{"movement", "position", "random_movement"}) {
+		positionComponent, _ := entity.Components["position"].(PositionComponent)
+
+		// Choose a random (x, y) such that -1 <= x <= 1 and -1 <= y <= 1
+		dx := rand.Intn(3) + -1
+		dy := rand.Intn(3) + -1
+
+		fmt.Printf("Coordinates to move to: %d, %d\n", dx, dy)
+
+		if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
+			target := GetBlockingEntitiesAtLocation(entities, positionComponent.X+dx, positionComponent.Y+dy)
+			if target != nil {
+				SystemAttack(entity, target, messageLog)
+			} else {
+				positionComponent.X += dx
+				positionComponent.Y += dy
+
+				entity.RemoveComponent("position")
+				entity.AddComponent("position", positionComponent)
+			}
+		}
+	}
+}
+
+func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.MessageLog) {
+	// Initiate an attack against another entity
+	if entity.HasComponent("attacker") {
+		// Check to ensure the target entity has hitpoints. If it doesn't, check to see if it can be interacted with
+		if targetEntity.HasComponents([]string{"hitpoints", "appearance"}) {
+			appearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
+			messageLog.SendMessage("You kick the " + appearanceComponent.Name + " in the shins.")
+		} else if targetEntity.HasComponent("appearance") {
+			// The target cannot be attacked
+			appearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
+
+			messageLog.SendMessage("You bump into the " + appearanceComponent.Name + "\n")
+		}
 	}
 }

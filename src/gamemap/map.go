@@ -62,4 +62,3 @@ func (m *Map) IsBlocked(x int, y int) bool {
 		return false
 	}
 }
-
