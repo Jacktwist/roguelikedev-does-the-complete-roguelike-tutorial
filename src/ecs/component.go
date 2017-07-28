@@ -54,6 +54,7 @@ func (c ControllableComponent) IsComponent() bool {
 
 type HitPointComponent struct {
 	Hp int
+	MaxHP int
 }
 
 func (h HitPointComponent) IsComponent() bool {

@@ -60,8 +60,8 @@ func init() {
 	player.AddComponent("appearance", ecs.AppearanceComponent{Color: "white", Character: "@", Layer: 1, Name: "Player"})
 	player.AddComponent("movement", ecs.MovementComponent{})
 	player.AddComponent("controllable", ecs.ControllableComponent{})
-	player.AddComponent("attacker", ecs.AttackerComponent{Attack: 2, Defense: 2})
-	player.AddComponent("hitpoints", ecs.HitPointComponent{Hp: 10})
+	player.AddComponent("attacker", ecs.AttackerComponent{Attack: 5, Defense: 5})
+	player.AddComponent("hitpoints", ecs.HitPointComponent{Hp: 20, MaxHP: 20})
 	player.AddComponent("block", ecs.BlockingComponent{})
 
 	entities = append(entities, player)
@@ -263,33 +263,33 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "T", Color: "dark green", Name: "Troll"},
-					"hitpoints": ecs.HitPointComponent{Hp: 20},
+					"hitpoints": ecs.HitPointComponent{Hp: 20, MaxHP: 20},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
 					"random_movement": ecs.RandomMovementComponent{},
-					"attacker": ecs.AttackerComponent{}})
+					"attacker": ecs.AttackerComponent{Attack: 10, Defense: 7}})
 			} else if chance > 25 && chance <= 50 {
 				// Create an Orc
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "o", Color: "darker green", Name: "Orc"},
-					"hitpoints": ecs.HitPointComponent{Hp: 15},
+					"hitpoints": ecs.HitPointComponent{Hp: 15, MaxHP: 15},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
 					"random_movement": ecs.RandomMovementComponent{},
-					"attacker": ecs.AttackerComponent{}})
+					"attacker": ecs.AttackerComponent{Attack: 7, Defense: 5}})
 			} else {
 				// Create a Goblin
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "g", Color: "green", Name: "Goblin"},
-					"hitpoints": ecs.HitPointComponent{Hp: 5},
+					"hitpoints": ecs.HitPointComponent{Hp: 5, MaxHP: 5},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
 					"random_movement": ecs.RandomMovementComponent{},
-					"attacker": ecs.AttackerComponent{}})
+					"attacker": ecs.AttackerComponent{Attack: 2, Defense: 2}})
 			}
 
 			entities = append(entities, createdEntity)
