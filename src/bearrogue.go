@@ -57,7 +57,7 @@ func init() {
 	player.SetupGameEntity()
 	player.AddComponent("player", ecs.PlayerComponent{})
 	player.AddComponent("position", ecs.PositionComponent{X: 0, Y: 0})
-	player.AddComponent("appearance", ecs.AppearanceComponent{Color: "white", Character: "@", Layer: 1, Name: "You"})
+	player.AddComponent("appearance", ecs.AppearanceComponent{Color: "white", Character: "@", Layer: 1, Name: "Player"})
 	player.AddComponent("movement", ecs.MovementComponent{})
 	player.AddComponent("controllable", ecs.ControllableComponent{})
 	player.AddComponent("attacker", ecs.AttackerComponent{Attack: 2, Defense: 2})
@@ -240,7 +240,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 	var entities []*ecs.GameEntity
 	var createdEntity *ecs.GameEntity
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 20; i++ {
 		x := 0
 		y := 0
 		locationFound := false
@@ -266,7 +266,8 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"hitpoints": ecs.HitPointComponent{Hp: 20},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
-					"random_movement": ecs.RandomMovementComponent{}})
+					"random_movement": ecs.RandomMovementComponent{},
+					"attacker": ecs.AttackerComponent{}})
 			} else if chance > 25 && chance <= 50 {
 				// Create an Orc
 				createdEntity = &ecs.GameEntity{}
@@ -276,7 +277,8 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"hitpoints": ecs.HitPointComponent{Hp: 15},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
-					"random_movement": ecs.RandomMovementComponent{}})
+					"random_movement": ecs.RandomMovementComponent{},
+					"attacker": ecs.AttackerComponent{}})
 			} else {
 				// Create a Goblin
 				createdEntity = &ecs.GameEntity{}
@@ -286,7 +288,8 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"hitpoints": ecs.HitPointComponent{Hp: 5},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
-					"random_movement": ecs.RandomMovementComponent{}})
+					"random_movement": ecs.RandomMovementComponent{},
+					"attacker": ecs.AttackerComponent{}})
 			}
 
 			entities = append(entities, createdEntity)

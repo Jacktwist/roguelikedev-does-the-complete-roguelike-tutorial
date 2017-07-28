@@ -94,13 +94,21 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 	if entity.HasComponent("attacker") {
 		// Check to ensure the target entity has hitpoints. If it doesn't, check to see if it can be interacted with
 		if targetEntity.HasComponents([]string{"hitpoints", "appearance"}) {
-			appearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
-			messageLog.SendMessage("You kick the " + appearanceComponent.Name + " in the shins.")
+
+			eAppearanceComponent, _ := entity.Components["appearance"].(AppearanceComponent)
+			tAppearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
+
+			if entity.HasComponent("player") || targetEntity.HasComponent("player") {
+				messageLog.SendMessage(eAppearanceComponent.Name + " kicks the " + tAppearanceComponent.Name + " in the shins.")
+			}
 		} else if targetEntity.HasComponent("appearance") {
 			// The target cannot be attacked
-			appearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
+			eAppearanceComponent, _ := entity.Components["appearance"].(AppearanceComponent)
+			tAppearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
 
-			messageLog.SendMessage("You bump into the " + appearanceComponent.Name + "\n")
+			if entity.HasComponent("player") || targetEntity.HasComponent("player") {
+				messageLog.SendMessage(eAppearanceComponent.Name + " bumps into the " + tAppearanceComponent.Name + "\n")
+			}
 		}
 	}
 }
