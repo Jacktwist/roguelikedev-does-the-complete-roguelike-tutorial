@@ -3,20 +3,26 @@ package ecs
 import (
 	"github.com/google/uuid"
 	"fmt"
+	"sync"
 )
 
 type GameEntity struct {
 	gmUUID     uuid.UUID
 	Components map[string]Component
+	mux sync.Mutex
 }
 
-func NewGameEntity() *GameEntity {
-		gm := GameEntity {
-			gmUUID: uuid.New(),
-			Components: make(map[string]Component),
-		}
+func (e *GameEntity) SetupGameEntity() {
+	e.mux.Lock()
+	e.gmUUID = uuid.New()
+	e.Components = make(map[string]Component)
+	e.mux.Unlock()
+}
 
-	return &gm
+func (e *GameEntity) setupComponentsMap() {
+	e.mux.Lock()
+	e.Components = make(map[string]Component)
+	e.mux.Unlock()
 }
 
 func (e *GameEntity) HasComponent(componentName string) bool {
@@ -46,9 +52,14 @@ func (e *GameEntity) AddComponent(name string, component Component) {
 
 func (e *GameEntity) AddComponents(components map[string]Component) {
 	// Add several (or one) components to the entity
+	e.mux.Lock()
 	for name, component := range components {
-		e.Components[name] = component
+		if component != nil {
+			//fmt.Printf("Adding component: %s - %v\n", name, component)
+			e.Components[name] = component
+		}
 	}
+	e.mux.Unlock()
 }
 
 func (e *GameEntity) RemoveComponent(componentName string) {

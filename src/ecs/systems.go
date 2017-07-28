@@ -6,7 +6,6 @@ import (
 	"gamemap"
 	"ui"
 	"math/rand"
-	"fmt"
 )
 
 func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *gamemap.Map) {
@@ -63,7 +62,7 @@ func SystemMovement(entity *GameEntity, dx, dy int, entities []*GameEntity, game
 		}
 	} else {
 		// Otherwise, just give it random movement for now
-		//SystemRandomMovement(entity, entities, gameMap, messageLog)
+		SystemRandomMovement(entity, entities, gameMap, messageLog)
 	}
 }
 
@@ -74,8 +73,6 @@ func SystemRandomMovement(entity *GameEntity, entities []*GameEntity, gameMap *g
 		// Choose a random (x, y) such that -1 <= x <= 1 and -1 <= y <= 1
 		dx := rand.Intn(3) + -1
 		dy := rand.Intn(3) + -1
-
-		fmt.Printf("Coordinates to move to: %d, %d\n", dx, dy)
 
 		if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
 			target := GetBlockingEntitiesAtLocation(entities, positionComponent.X+dx, positionComponent.Y+dy)

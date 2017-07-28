@@ -53,7 +53,8 @@ func init() {
 	blt.Clear()
 
 	// Create a player Entity, and add them to our slice of Entities
-	player = ecs.NewGameEntity()
+	player = &ecs.GameEntity{}
+	player.SetupGameEntity()
 	player.AddComponent("player", ecs.PlayerComponent{})
 	player.AddComponent("position", ecs.PositionComponent{X: 0, Y: 0})
 	player.AddComponent("appearance", ecs.AppearanceComponent{Color: "white", Character: "@", Layer: 1, Name: "You"})
@@ -239,7 +240,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 	var entities []*ecs.GameEntity
 	var createdEntity *ecs.GameEntity
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 5; i++ {
 		x := 0
 		y := 0
 		locationFound := false
@@ -258,7 +259,8 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 			chance := rand.Intn(100)
 			if chance <= 25 {
 				// Create a Troll
-				createdEntity = ecs.NewGameEntity()
+				createdEntity = &ecs.GameEntity{}
+				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "T", Color: "dark green", Name: "Troll"},
 					"hitpoints": ecs.HitPointComponent{Hp: 20},
@@ -267,7 +269,8 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"random_movement": ecs.RandomMovementComponent{}})
 			} else if chance > 25 && chance <= 50 {
 				// Create an Orc
-				createdEntity = ecs.NewGameEntity()
+				createdEntity = &ecs.GameEntity{}
+				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "o", Color: "darker green", Name: "Orc"},
 					"hitpoints": ecs.HitPointComponent{Hp: 15},
@@ -276,6 +279,8 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"random_movement": ecs.RandomMovementComponent{}})
 			} else {
 				// Create a Goblin
+				createdEntity = &ecs.GameEntity{}
+				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "g", Color: "green", Name: "Goblin"},
 					"hitpoints": ecs.HitPointComponent{Hp: 5},
@@ -293,4 +298,3 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 
 	return entities
 }
-
