@@ -6,6 +6,7 @@ import (
 	"gamemap"
 	"ui"
 	"math/rand"
+	"strconv"
 )
 
 func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *gamemap.Map) {
@@ -91,15 +92,53 @@ func SystemRandomMovement(entity *GameEntity, entities []*GameEntity, gameMap *g
 
 func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.MessageLog) {
 	// Initiate an attack against another entity
-	if entity.HasComponent("attacker") {
+	if entity.HasComponent("attacker") && entity != targetEntity{
 		// Check to ensure the target entity has hitpoints. If it doesn't, check to see if it can be interacted with
 		if targetEntity.HasComponents([]string{"hitpoints", "appearance"}) {
 
 			eAppearanceComponent, _ := entity.Components["appearance"].(AppearanceComponent)
 			tAppearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
 
-			if entity.HasComponent("player") || targetEntity.HasComponent("player") {
-				messageLog.SendMessage(eAppearanceComponent.Name + " kicks the " + tAppearanceComponent.Name + " in the shins.")
+			eAttackerComponent, _ := entity.Components["attacker"].(AttackerComponent)
+			tAttackerComponent, _ := targetEntity.Components["attacker"].(AttackerComponent)
+
+			// Simple attack algorithm (temporary): Attacking entitys attack value + d6 - defenders defense value
+			attackModifier := rand.Intn(6)
+			totalAttack := eAttackerComponent.Attack + attackModifier
+
+			if totalAttack > tAttackerComponent.Defense {
+				// The attack exceeded the defense of the target, so any excess should be applied as damage
+				excess := totalAttack - tAttackerComponent.Defense
+
+				tHitPointsComponent, _ := targetEntity.Components["hitpoints"].(HitPointComponent)
+
+				tHitPointsComponent.Hp -= excess
+
+				targetEntity.RemoveComponent("hitpoints")
+				targetEntity.AddComponent("hitpoints", tHitPointsComponent)
+
+				if entity.HasComponent("player") || targetEntity.HasComponent("player") {
+					messageLog.SendMessage(eAppearanceComponent.Name + " attacks the " + tAppearanceComponent.Name + " for " + strconv.Itoa(excess) + " points of damage.")
+				}
+
+				// Check to see if this attack has reduced the targets HP to 0 or less
+				if tHitPointsComponent.Hp <= 0 {
+					// This entity has died, replace it with a corpse, and remove all movement and blocking components
+
+					if entity.HasComponent("player") || targetEntity.HasComponent("player") {
+						messageLog.SendMessage("The " + tAppearanceComponent.Name + " has been killed!")
+					}
+
+					tAppearanceComponent.Name = "Remains of " + tAppearanceComponent.Name
+					tAppearanceComponent.Character = "%"
+					tAppearanceComponent.Color = "dark red"
+					tAppearanceComponent.Layer = 1
+
+					targetEntity.RemoveComponent("appearance")
+					targetEntity.AddComponent("appearance", tAppearanceComponent)
+
+					targetEntity.RemoveComponents([]string{"movement", "attacker", "block", "random_movement", "hitpoints"})
+				}
 			}
 		} else if targetEntity.HasComponent("appearance") {
 			// The target cannot be attacked

@@ -16,8 +16,8 @@ const (
 	WindowSizeY = 35
 	ViewAreaX = 100
 	ViewAreaY = 30
-	MapWidth = 200
-	MapHeight = 200
+	MapWidth = 100
+	MapHeight = 35
 	Title = "BearRogue"
 	Font = "fonts/UbuntuMono.ttf"
 	FontSize = 24
@@ -240,7 +240,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 	var entities []*ecs.GameEntity
 	var createdEntity *ecs.GameEntity
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 10; i++ {
 		x := 0
 		y := 0
 		locationFound := false

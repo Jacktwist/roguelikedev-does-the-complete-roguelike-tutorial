@@ -71,6 +71,16 @@ func (e *GameEntity) RemoveComponent(componentName string) {
 	}
 }
 
+func (e *GameEntity) RemoveComponents(componentNames []string) {
+	for i := 0; i < len(componentNames); i++ {
+		_, ok := e.Components[componentNames[i]]
+
+		if ok {
+			delete(e.Components, componentNames[i])
+		}
+	}
+}
+
 func (e *GameEntity) GetComponent(componentName string) Component {
 	// Return the named component from the entity, if present
 	if _, ok := e.Components[componentName]; ok {
