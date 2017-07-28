@@ -47,6 +47,7 @@ func (f *FieldOfVision) RayCast(playerX, playerY int, gameMap *gamemap.Map) {
 
 		// Mark the players current position as explored
 		gameMap.Tiles[playerX][playerY].Explored = true
+		gameMap.Tiles[playerX][playerY].Visible = true
 
 		for j := 0; j < f.torchRadius; j++ {
 			x -= ax
