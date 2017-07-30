@@ -7,6 +7,7 @@ import (
 	"ui"
 	"math/rand"
 	"strconv"
+	"fmt"
 )
 
 func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *gamemap.Map) {
@@ -62,13 +63,22 @@ func SystemMovement(entity *GameEntity, dx, dy int, entities []*GameEntity, game
 			}
 		}
 	} else {
-		// Otherwise, just give it random movement for now
-		SystemRandomMovement(entity, entities, gameMap, messageLog)
+		// Check if the entity has an AI component. If it does, use that for movement
+		aiComponent := entity.HasAIComponent()
+		if aiComponent != "" {
+			switch aiComponent {
+			case "random_movement":
+				SystemRandomMovement(entity, entities, gameMap, messageLog)
+			case "basic_melee_ai":
+				SystemBasicMeleeAI(entity, entities, gameMap, messageLog)
+			}
+		}
 	}
 }
 
 func SystemRandomMovement(entity *GameEntity, entities []*GameEntity, gameMap *gamemap.Map, messageLog *ui.MessageLog) {
-	if entity.HasComponents([]string{"movement", "position", "random_movement"}) {
+	if entity.HasComponents([]string{"movement", "position"}) {
+
 		positionComponent, _ := entity.Components["position"].(PositionComponent)
 
 		// Choose a random (x, y) such that -1 <= x <= 1 and -1 <= y <= 1
@@ -88,6 +98,66 @@ func SystemRandomMovement(entity *GameEntity, entities []*GameEntity, gameMap *g
 			}
 		}
 	}
+}
+
+func SystemBasicMeleeAI(entity *GameEntity, entities []*GameEntity, gameMap *gamemap.Map, messageLog *ui.MessageLog) {
+	// This is the most basic AI available. The entity will choose a target, and move towards that target until it is
+	// right next to it, then it will repeatedly attack the target. It chooses the closest viable target for its attacks
+	if entity.HasComponents([]string{"position", "movement", "appearance", "basic_melee_ai"}) {
+		//First, check to ensure the entity is within the players line of sight
+		positionComponent, _ := entity.Components["position"].(PositionComponent)
+		appearanceComponent, _ := entity.Components["appearance"].(AppearanceComponent)
+
+		if gameMap.IsVisibleToPlayer(positionComponent.X, positionComponent.Y) {
+			// The entity is currently within the players field of vision, it should do something
+			// First, pick a target (this will usually be the player, but maybe not always)
+			basicMeleeAi, _ := entity.Components["basic_melee_ai"].(BasicMeleeAIComponent)
+
+			// For now, use the player
+			target := getPlayerEntity(entities)
+
+			targetPositionComponent, _ := target.Components["position"].(PositionComponent)
+
+			oldTarget := basicMeleeAi.target
+
+			// Set the target
+			basicMeleeAi.target = target
+
+			if oldTarget != basicMeleeAi.target {
+				targetAppearanceComponent, _ := basicMeleeAi.target.Components["appearance"].(AppearanceComponent)
+				messageLog.SendMessage("The " + appearanceComponent.Name + " throws an angry glare at " + targetAppearanceComponent.Name + "!")
+			}
+
+			entity.RemoveComponent("basic_melee_ai")
+			entity.AddComponent("basic_melee_ai", basicMeleeAi)
+
+			// Now that the entity has a target, move towards it
+			distance := distanceTo(positionComponent.X, positionComponent.Y, targetPositionComponent.X, targetPositionComponent.Y)
+
+			dx := int(Round((float64(targetPositionComponent.X) - float64(positionComponent.X)) / float64(distance)))
+			dy := int(Round((float64(targetPositionComponent.Y) - float64(positionComponent.Y)) / float64(distance)))
+
+			fmt.Printf("minus: %f, distance: %v, (%f, %f)\n", targetPositionComponent.X - positionComponent.X, distance,  dx, dy)
+
+			if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
+				target := GetBlockingEntitiesAtLocation(entities, positionComponent.X + dx, positionComponent.Y + dy)
+				if target != nil {
+					SystemAttack(entity, target, messageLog)
+				} else {
+					positionComponent.X += dx
+					positionComponent.Y += dy
+
+					entity.RemoveComponent("position")
+					entity.AddComponent("position", positionComponent)
+				}
+			}
+
+		} else {
+			// The entity is not currently visible to the player, so it should just shuffle around randomly for now
+			SystemRandomMovement(entity, entities, gameMap, messageLog)
+		}
+	}
+
 }
 
 func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.MessageLog) {

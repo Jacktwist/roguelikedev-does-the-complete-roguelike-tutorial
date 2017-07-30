@@ -257,7 +257,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 
 		if locationFound {
 			chance := rand.Intn(100)
-			if chance <= 25 {
+			if chance <= 5 {
 				// Create a Troll
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
@@ -266,7 +266,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"hitpoints": ecs.HitPointComponent{Hp: 20, MaxHP: 20},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
-					"random_movement": ecs.RandomMovementComponent{},
+					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
 					"attacker": ecs.AttackerComponent{Attack: 10, Defense: 7}})
 			} else if chance > 25 && chance <= 50 {
 				// Create an Orc
@@ -277,7 +277,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"hitpoints": ecs.HitPointComponent{Hp: 15, MaxHP: 15},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
-					"random_movement": ecs.RandomMovementComponent{},
+					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
 					"attacker": ecs.AttackerComponent{Attack: 7, Defense: 5}})
 			} else {
 				// Create a Goblin
@@ -288,7 +288,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"hitpoints": ecs.HitPointComponent{Hp: 5, MaxHP: 5},
 					"block": ecs.BlockingComponent{},
 					"movement": ecs.MovementComponent{},
-					"random_movement": ecs.RandomMovementComponent{},
+					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
 					"attacker": ecs.AttackerComponent{Attack: 2, Defense: 2}})
 			}
 

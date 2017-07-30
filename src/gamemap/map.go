@@ -54,9 +54,18 @@ func (m *Map) InitializeMap() {
 	rand.Seed( time.Now().UTC().UnixNano())
 }
 
-func (m *Map) IsBlocked(x int, y int) bool {
+func (m *Map) IsBlocked(x, y int) bool {
 	// Check to see if the provided coordinates contain a blocked tile
 	if m.Tiles[x][y].Blocked {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (m *Map) IsVisibleToPlayer(x, y int) bool {
+	// Check to see if the given position on the map is visible to the player currently
+	if m.Tiles[x][y].Visible {
 		return true
 	} else {
 		return false

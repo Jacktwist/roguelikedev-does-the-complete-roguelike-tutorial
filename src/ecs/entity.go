@@ -90,6 +90,18 @@ func (e *GameEntity) GetComponent(componentName string) Component {
 }
 }
 
+func (e *GameEntity) HasAIComponent() string {
+	// Check to see if the entity has an AI Component
+	for name, component := range e.Components {
+		if component.IsAIComponent() {
+			// Just return the first AI component encountered, as each entity should not have more than one anyways
+			return name
+		}
+	}
+
+	return ""
+}
+
 func (e *GameEntity) Print() {
 	// Print a string representation of the entity, including all components
 	fmt.Printf("uuid: %v\n", e.gmUUID)
