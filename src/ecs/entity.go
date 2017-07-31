@@ -37,10 +37,14 @@ func (e *GameEntity) HasComponent(componentName string) bool {
 func (e *GameEntity) HasComponents(componentNames []string) bool {
 	// Check to see if the entity has the given components
 	containsAll := true
-	for i := 0; i < len(componentNames); i++ {
-		if !e.HasComponent(componentNames[i]) {
-			containsAll = false
+	if e != nil {
+		for i := 0; i < len(componentNames); i++ {
+			if !e.HasComponent(componentNames[i]) {
+				containsAll = false
+			}
 		}
+	} else {
+		return false
 	}
 	return containsAll
 }
@@ -72,6 +76,7 @@ func (e *GameEntity) RemoveComponent(componentName string) {
 }
 
 func (e *GameEntity) RemoveComponents(componentNames []string) {
+	e.mux.Lock()
 	for i := 0; i < len(componentNames); i++ {
 		_, ok := e.Components[componentNames[i]]
 
@@ -79,6 +84,7 @@ func (e *GameEntity) RemoveComponents(componentNames []string) {
 			delete(e.Components, componentNames[i])
 		}
 	}
+	e.mux.Unlock()
 }
 
 func (e *GameEntity) GetComponent(componentName string) Component {

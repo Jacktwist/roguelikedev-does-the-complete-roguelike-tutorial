@@ -1,16 +1,11 @@
 package ecs
 
 type Component interface {
-	IsComponent() bool
 	IsAIComponent() bool
 }
 
 // Player Component
 type PlayerComponent struct {
-}
-
-func (pl PlayerComponent) IsComponent() bool {
-	return true
 }
 
 func (pl PlayerComponent) IsAIComponent() bool {
@@ -21,10 +16,6 @@ func (pl PlayerComponent) IsAIComponent() bool {
 type PositionComponent struct {
 	X int
 	Y int
-}
-
-func (pc PositionComponent) IsComponent() bool {
-	return true
 }
 
 func (pc PositionComponent) IsAIComponent() bool {
@@ -39,10 +30,6 @@ type AppearanceComponent struct {
 	Name string
 }
 
-func (a AppearanceComponent) IsComponent() bool {
-	return true
-}
-
 func (a AppearanceComponent) IsAIComponent() bool {
 	return false
 }
@@ -50,10 +37,6 @@ func (a AppearanceComponent) IsAIComponent() bool {
 // Movement Component
 type MovementComponent struct {
 
-}
-
-func (m MovementComponent) IsComponent() bool {
-	return true
 }
 
 func (m MovementComponent) IsAIComponent() bool {
@@ -65,10 +48,6 @@ type ControllableComponent struct {
 
 }
 
-func (c ControllableComponent) IsComponent() bool {
-	return true
-}
-
 func (c ControllableComponent) IsAIComponent() bool {
 	return false
 }
@@ -76,10 +55,6 @@ func (c ControllableComponent) IsAIComponent() bool {
 type HitPointComponent struct {
 	Hp int
 	MaxHP int
-}
-
-func (h HitPointComponent) IsComponent() bool {
-	return true
 }
 
 func (h HitPointComponent) IsAIComponent() bool {
@@ -92,10 +67,6 @@ type AttackerComponent struct {
 	Defense int
 }
 
-func (a AttackerComponent) IsComponent() bool {
-	return true
-}
-
 func (a AttackerComponent) IsAIComponent() bool {
 	return false
 }
@@ -103,10 +74,6 @@ func (a AttackerComponent) IsAIComponent() bool {
 // Blocking Component
 type BlockingComponent struct {
 
-}
-
-func (b BlockingComponent) IsComponent() bool {
-	return true
 }
 
 func (b BlockingComponent) IsAIComponent() bool {
@@ -118,10 +85,6 @@ type RandomMovementComponent struct {
 
 }
 
-func (r RandomMovementComponent) IsComponent() bool {
-	return true
-}
-
 func (r RandomMovementComponent) IsAIComponent() bool {
 	return true
 }
@@ -131,12 +94,30 @@ type BasicMeleeAIComponent struct {
 	target *GameEntity
 }
 
-func (b BasicMeleeAIComponent) IsComponent() bool {
+func (b BasicMeleeAIComponent) IsAIComponent() bool {
 	return true
 }
 
-func (b BasicMeleeAIComponent) IsAIComponent() bool {
-	return true
+// Reproduces Component
+type ReproducesComponent struct {
+	MaxTimes int
+	TimesRemaining int
+	PercentChance int
+}
+
+func (r ReproducesComponent) IsAIComponent() bool {
+	return false
+}
+
+// Killable Component
+type KillableComponent struct {
+	Character string
+	Color string
+	Name string
+}
+
+func (k KillableComponent) IsAIComponent() bool {
+	return false
 }
 
 

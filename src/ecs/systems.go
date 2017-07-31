@@ -7,22 +7,23 @@ import (
 	"ui"
 	"math/rand"
 	"strconv"
-	"fmt"
 )
 
 func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *gamemap.Map) {
 	// Render all renderable entities to the screen
 	for _, e := range entities {
-		if e.HasComponents([]string{"position", "appearance"}) {
-			pos, _ := e.Components["position"].(PositionComponent)
-			app, _ := e.Components["appearance"].(AppearanceComponent)
+		if e != nil {
+			if e.HasComponents([]string{"position", "appearance"}) {
+				pos, _ := e.Components["position"].(PositionComponent)
+				app, _ := e.Components["appearance"].(AppearanceComponent)
 
-			cameraX, cameraY := camera.ToCameraCoordinates(pos.X, pos.Y)
+				cameraX, cameraY := camera.ToCameraCoordinates(pos.X, pos.Y)
 
-			if gameMap.Tiles[pos.X][pos.Y].Visible{
-				blt.Layer(app.Layer)
-				blt.Color(blt.ColorFromName(app.Color))
-				blt.Print(cameraX, cameraY, app.Character)
+				if gameMap.Tiles[pos.X][pos.Y].Visible{
+					blt.Layer(app.Layer)
+					blt.Color(blt.ColorFromName(app.Color))
+					blt.Print(cameraX, cameraY, app.Character)
+				}
 			}
 		}
 	}
@@ -137,8 +138,6 @@ func SystemBasicMeleeAI(entity *GameEntity, entities []*GameEntity, gameMap *gam
 			dx := int(Round((float64(targetPositionComponent.X) - float64(positionComponent.X)) / float64(distance)))
 			dy := int(Round((float64(targetPositionComponent.Y) - float64(positionComponent.Y)) / float64(distance)))
 
-			fmt.Printf("minus: %f, distance: %v, (%f, %f)\n", targetPositionComponent.X - positionComponent.X, distance,  dx, dy)
-
 			if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
 				target := GetBlockingEntitiesAtLocation(entities, positionComponent.X + dx, positionComponent.Y + dy)
 				if target != nil {
@@ -194,20 +193,23 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 				// Check to see if this attack has reduced the targets HP to 0 or less
 				if tHitPointsComponent.Hp <= 0 {
 					// This entity has died, replace it with a corpse, and remove all movement and blocking components
+					if targetEntity.HasComponent("killable") {
+						if entity.HasComponent("player") || targetEntity.HasComponent("player") {
+							messageLog.SendMessage("The " + tAppearanceComponent.Name + " has been killed!")
+						}
 
-					if entity.HasComponent("player") || targetEntity.HasComponent("player") {
-						messageLog.SendMessage("The " + tAppearanceComponent.Name + " has been killed!")
+						killableComponent, _ := targetEntity.Components["killable"].(KillableComponent)
+
+						tAppearanceComponent.Name = killableComponent.Name + " " + tAppearanceComponent.Name
+						tAppearanceComponent.Character = killableComponent.Character
+						tAppearanceComponent.Color = killableComponent.Color
+						tAppearanceComponent.Layer = 1
+
+						targetEntity.RemoveComponent("appearance")
+						targetEntity.AddComponent("appearance", tAppearanceComponent)
+
+						targetEntity.RemoveComponents([]string{"movement", "attacker", "block", "random_movement", "hitpoints", "reproducer"})
 					}
-
-					tAppearanceComponent.Name = "Remains of " + tAppearanceComponent.Name
-					tAppearanceComponent.Character = "%"
-					tAppearanceComponent.Color = "dark red"
-					tAppearanceComponent.Layer = 1
-
-					targetEntity.RemoveComponent("appearance")
-					targetEntity.AddComponent("appearance", tAppearanceComponent)
-
-					targetEntity.RemoveComponents([]string{"movement", "attacker", "block", "random_movement", "hitpoints"})
 				}
 			}
 		} else if targetEntity.HasComponent("appearance") {
@@ -220,4 +222,61 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 			}
 		}
 	}
+}
+
+func SystemReproduce(entity *GameEntity, entities []*GameEntity, gameMap *gamemap.Map, messageLog *ui.MessageLog) *GameEntity {
+	if entity.HasComponent("reproducer") {
+		reproducerComponent, _ := entity.Components["reproducer"].(ReproducesComponent)
+
+		chance := rand.Intn(100)
+
+		if reproducerComponent.TimesRemaining > 0 && chance <= reproducerComponent.PercentChance {
+			// This entity can still reproduce, so do so
+
+			positionComponent, _ := entity.Components["position"].(PositionComponent)
+
+			// Randomly generate a direction to reproduce in
+			x := (rand.Intn(3) + -1) + positionComponent.X
+			y := (rand.Intn(3) + -1) + positionComponent.Y
+
+			if !gameMap.IsBlocked(x, y) {
+				target := GetBlockingEntitiesAtLocation(entities, x, y)
+				if target == nil {
+					// There is nothing blocking the new entity, so go ahead and create it
+					createdEntity := &GameEntity{}
+					createdEntity.SetupGameEntity()
+					//createdEntity.Components = entity.Components
+
+					for name, e := range entity.Components {
+						createdEntity.AddComponent(name, e)
+					}
+
+					// Update the position and number of reproductions
+					rPositionComponent, _ := createdEntity.Components["position"].(PositionComponent)
+					rReproducerComponent, _ := createdEntity.Components["reproducer"].(ReproducesComponent)
+
+					rPositionComponent.X = x
+					rPositionComponent.Y = y
+					rReproducerComponent.TimesRemaining = rReproducerComponent.TimesRemaining - 2
+					rReproducerComponent.PercentChance = int(reproducerComponent.PercentChance / 2)
+
+					createdEntity.RemoveComponents([]string{"position", "reproducer"})
+
+					createdEntity.AddComponents(map[string]Component{"position": rPositionComponent, "reproducer": rReproducerComponent})
+
+					reproducerComponent.TimesRemaining -= 1
+					entity.RemoveComponent("reproducer")
+					entity.AddComponent("reproducer", reproducerComponent)
+
+					return createdEntity
+
+				}
+			}
+
+			reproducerComponent.TimesRemaining -= 1
+			entity.RemoveComponent("reproducer")
+			entity.AddComponent("reproducer", reproducerComponent)
+		}
+	}
+	return nil
 }
