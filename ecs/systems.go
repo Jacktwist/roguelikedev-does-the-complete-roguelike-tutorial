@@ -19,7 +19,7 @@ func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *ga
 
 				cameraX, cameraY := camera.ToCameraCoordinates(pos.X, pos.Y)
 
-				if gameMap.Tiles[pos.X][pos.Y].Visible{
+				if gameMap.Tiles[pos.X][pos.Y].Visible {
 					blt.Layer(app.Layer)
 					blt.Color(blt.ColorFromName(app.Color))
 					blt.Print(cameraX, cameraY, app.Character)
@@ -51,7 +51,7 @@ func SystemMovement(entity *GameEntity, dx, dy int, entities []*GameEntity, game
 		// If the current entity is controllable, moveable, and has a position, go ahead and move it
 		positionComponent, _ := entity.Components["position"].(PositionComponent)
 
-		if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
+		if !gameMap.IsBlocked(positionComponent.X+dx, positionComponent.Y+dy) {
 			target := GetBlockingEntitiesAtLocation(entities, positionComponent.X+dx, positionComponent.Y+dy)
 			if target != nil {
 				SystemAttack(entity, target, messageLog)
@@ -86,7 +86,7 @@ func SystemRandomMovement(entity *GameEntity, entities []*GameEntity, gameMap *g
 		dx := rand.Intn(3) + -1
 		dy := rand.Intn(3) + -1
 
-		if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
+		if !gameMap.IsBlocked(positionComponent.X+dx, positionComponent.Y+dy) {
 			target := GetBlockingEntitiesAtLocation(entities, positionComponent.X+dx, positionComponent.Y+dy)
 			if target != nil {
 				SystemAttack(entity, target, messageLog)
@@ -138,8 +138,8 @@ func SystemBasicMeleeAI(entity *GameEntity, entities []*GameEntity, gameMap *gam
 			dx := int(Round((float64(targetPositionComponent.X) - float64(positionComponent.X)) / float64(distance)))
 			dy := int(Round((float64(targetPositionComponent.Y) - float64(positionComponent.Y)) / float64(distance)))
 
-			if !gameMap.IsBlocked(positionComponent.X + dx, positionComponent.Y + dy) {
-				target := GetBlockingEntitiesAtLocation(entities, positionComponent.X + dx, positionComponent.Y + dy)
+			if !gameMap.IsBlocked(positionComponent.X+dx, positionComponent.Y+dy) {
+				target := GetBlockingEntitiesAtLocation(entities, positionComponent.X+dx, positionComponent.Y+dy)
 				if target != nil {
 					SystemAttack(entity, target, messageLog)
 				} else {
@@ -161,7 +161,7 @@ func SystemBasicMeleeAI(entity *GameEntity, entities []*GameEntity, gameMap *gam
 
 func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.MessageLog) {
 	// Initiate an attack against another entity
-	if entity.HasComponent("attacker") && entity != targetEntity{
+	if entity.HasComponent("attacker") && entity != targetEntity {
 		// Check to ensure the target entity has hitpoints. If it doesn't, check to see if it can be interacted with
 		if targetEntity.HasComponents([]string{"hitpoints", "appearance"}) {
 

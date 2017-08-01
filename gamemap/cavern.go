@@ -1,8 +1,8 @@
 package gamemap
 
 import (
-	"sort"
 	"math/rand"
+	"sort"
 )
 
 func (m *Map) GenerateCavern() []*Tile {
@@ -26,7 +26,7 @@ func (m *Map) GenerateCavern() []*Tile {
 	// Make several passes on this to help smooth out the walls of the cave.
 	for i := 0; i < 5; i++ {
 		for x := 0; x < m.Width; x++ {
-			for y := 0; y < m.Height - 1; y++ {
+			for y := 0; y < m.Height-1; y++ {
 				wallOneAway := m.countWallsNStepsAway(1, x, y)
 
 				wallTwoAway := m.countWallsNStepsAway(2, x, y)
@@ -45,7 +45,7 @@ func (m *Map) GenerateCavern() []*Tile {
 	// Step 3: Make a few more passes, smoothing further, and removing any small or single tile, unattached walls.
 	for i := 0; i < 5; i++ {
 		for x := 0; x < m.Width; x++ {
-			for y := 0; y < m.Height - 1; y++ {
+			for y := 0; y < m.Height-1; y++ {
 				wallOneAway := m.countWallsNStepsAway(1, x, y)
 
 				if wallOneAway >= 5 {
@@ -61,9 +61,9 @@ func (m *Map) GenerateCavern() []*Tile {
 
 	// Step 4: Seal up the edges of the map, so the player, and the following flood fill passes, cannot go beyond the
 	// intended game area
-	for x := 0; x < m.Width ; x++ {
+	for x := 0; x < m.Width; x++ {
 		for y := 0; y < m.Height; y++ {
-			if x == 0 || x == m.Width - 1 || y == 0 || y == m.Height - 1 {
+			if x == 0 || x == m.Width-1 || y == 0 || y == m.Height-1 {
 				m.Tiles[x][y].Blocked = true
 				m.Tiles[x][y].Blocks_sight = true
 			}
@@ -81,8 +81,8 @@ func (m *Map) GenerateCavern() []*Tile {
 	var tile *Tile
 	var node *Tile
 
-	for x := 0; x < m.Width - 1; x++ {
-		for y := 0; y < m.Height - 1; y++ {
+	for x := 0; x < m.Width-1; x++ {
+		for y := 0; y < m.Height-1; y++ {
 			tile = m.Tiles[x][y]
 
 			// If the current tile is a wall, or has already been visited, ignore it and move on
@@ -102,23 +102,23 @@ func (m *Map) GenerateCavern() []*Tile {
 						totalCavernArea = append(totalCavernArea, node)
 
 						// Add the tile to the west, if valid
-						if node.X - 1 > 0 && !m.Tiles[node.X -1][node.Y].IsWall() {
-							cavern = append(cavern, m.Tiles[node.X -1][node.Y])
+						if node.X-1 > 0 && !m.Tiles[node.X-1][node.Y].IsWall() {
+							cavern = append(cavern, m.Tiles[node.X-1][node.Y])
 						}
 
 						// Add the tile to east, if valid
-						if node.X + 1 < m.Width && !m.Tiles[node.X + 1][node.Y].IsWall() {
-							cavern = append(cavern, m.Tiles[node.X + 1][node.Y])
+						if node.X+1 < m.Width && !m.Tiles[node.X+1][node.Y].IsWall() {
+							cavern = append(cavern, m.Tiles[node.X+1][node.Y])
 						}
 
 						// Add the tile to north, if valid
-						if node.Y - 1 > 0 && !m.Tiles[node.X][node.Y - 1].IsWall() {
-							cavern = append(cavern, m.Tiles[node.X][node.Y - 1])
+						if node.Y-1 > 0 && !m.Tiles[node.X][node.Y-1].IsWall() {
+							cavern = append(cavern, m.Tiles[node.X][node.Y-1])
 						}
 
 						// Add the tile to south, if valid
-						if node.Y + 1 < m.Height && !m.Tiles[node.X][node.Y + 1].IsWall() {
-							cavern = append(cavern, m.Tiles[node.X][node.Y + 1])
+						if node.Y+1 < m.Height && !m.Tiles[node.X][node.Y+1].IsWall() {
+							cavern = append(cavern, m.Tiles[node.X][node.Y+1])
 						}
 					}
 				}
@@ -137,8 +137,8 @@ func (m *Map) GenerateCavern() []*Tile {
 	// Then, fill in any remaining caverns (aside from the main one). This will ensure that there are no areas on the
 	// map that the player cannot reach.
 	sort.Sort(BySize(caverns))
-	mainCave := caverns[len(caverns) - 1]
-	caverns = caverns[:len(caverns) - 1]
+	mainCave := caverns[len(caverns)-1]
+	caverns = caverns[:len(caverns)-1]
 
 	for i := 0; i < len(caverns); i++ {
 		for j := 0; j < len(caverns[i]); j++ {
@@ -156,11 +156,11 @@ func (m *Map) countWallsNStepsAway(n int, x int, y int) int {
 
 	for r := -n; r <= n; r++ {
 		for c := -n; c <= n; c++ {
-			if x + r >= m.Width || x + r <= 0 || y + c >= m.Height || y + c <= 0 {
+			if x+r >= m.Width || x+r <= 0 || y+c >= m.Height || y+c <= 0 {
 				// Check if the current coordinates would be off the map. Off map coordinates count as a wall.
-				wallCount ++
-			} else if m.Tiles[x + r][y + c].Blocked && m.Tiles[x + r][y + c].Blocks_sight {
-				wallCount ++
+				wallCount++
+			} else if m.Tiles[x+r][y+c].Blocked && m.Tiles[x+r][y+c].Blocks_sight {
+				wallCount++
 			}
 		}
 	}

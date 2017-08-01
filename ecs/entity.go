@@ -1,15 +1,15 @@
 package ecs
 
 import (
-	"github.com/google/uuid"
 	"fmt"
+	"github.com/google/uuid"
 	"sync"
 )
 
 type GameEntity struct {
 	gmUUID     uuid.UUID
 	Components map[string]Component
-	mux sync.Mutex
+	mux        sync.Mutex
 }
 
 func (e *GameEntity) SetupGameEntity() {
@@ -93,7 +93,7 @@ func (e *GameEntity) GetComponent(componentName string) Component {
 		return e.Components[componentName]
 	} else {
 		return nil
-}
+	}
 }
 
 func (e *GameEntity) HasAIComponent() string {
@@ -113,6 +113,6 @@ func (e *GameEntity) Print() {
 	fmt.Printf("uuid: %v\n", e.gmUUID)
 	fmt.Printf("components: \n")
 	for name, component := range e.Components {
-			fmt.Printf("	%s: %+v\n", name, component)
+		fmt.Printf("	%s: %+v\n", name, component)
 	}
 }

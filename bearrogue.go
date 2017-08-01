@@ -6,38 +6,43 @@ import (
 	"bearrogue/ecs"
 	"bearrogue/fov"
 	"bearrogue/gamemap"
-	"strconv"
 	"bearrogue/ui"
-	"math/rand"
 	"fmt"
+	"math/rand"
+	"strconv"
 )
 
 const (
 	WindowSizeX = 100
 	WindowSizeY = 35
-	ViewAreaX = 100
-	ViewAreaY = 30
-	MapWidth = 100
-	MapHeight = 35
-	Title = "BearRogue"
-	Font = "fonts/UbuntuMono.ttf"
-	FontSize = 24
-	PlayerTurn = iota
-	MobTurn = iota
+	ViewAreaX   = 100
+	ViewAreaY   = 30
+	MapWidth    = 100
+	MapHeight   = 35
+	Title       = "BearRogue"
+	Font        = "fonts/UbuntuMono.ttf"
+	FontSize    = 24
+	PlayerTurn  = iota
+	MobTurn     = iota
 )
 
 var (
-	player *ecs.GameEntity
-	entities []*ecs.GameEntity
-	gameMap *gamemap.Map
-	gameCamera *camera.GameCamera
+	buildStamp  string
+	gitHash		string
+	player      *ecs.GameEntity
+	entities    []*ecs.GameEntity
+	gameMap     *gamemap.Map
+	gameCamera  *camera.GameCamera
 	fieldOfView *fov.FieldOfVision
-	gameTurn int
-	messageLog ui.MessageLog
+	gameTurn    int
+	messageLog  ui.MessageLog
 )
 
 func init() {
 	blt.Open()
+
+	fmt.Printf("Build Stamp: %s\n", buildStamp)
+	fmt.Printf("Git Hash: %s\n", gitHash)
 
 	// BearLibTerminal uses configuration strings to set itself up, so we need to build these strings here
 	// First set up the string for window properties (size and title)
@@ -80,7 +85,6 @@ func init() {
 		positionComponent.Y = playerY
 		player.RemoveComponent("position")
 		player.AddComponent("position", positionComponent)
-		player.Print()
 	}
 
 	entities = append(entities, mapEntities...)
@@ -89,7 +93,7 @@ func init() {
 	gameTurn = PlayerTurn
 
 	// Initialize a camera object
-	gameCamera = &camera.GameCamera{X: 1, Y:1, Width: ViewAreaX, Height: ViewAreaY}
+	gameCamera = &camera.GameCamera{X: 1, Y: 1, Width: ViewAreaX, Height: ViewAreaY}
 
 	// Initialize a FoV object
 	fieldOfView = &fov.FieldOfVision{}
@@ -100,7 +104,7 @@ func init() {
 	messageLog = ui.MessageLog{MaxLength: 100}
 	messageLog.InitMessages()
 }
-	
+
 func main() {
 	// Main game loop
 
@@ -207,7 +211,7 @@ func renderMap() {
 	// Now draw each tile that should appear on the screen, if its visible, or explored
 	for x := 0; x < gameCamera.Width; x++ {
 		for y := 0; y < gameCamera.Height; y++ {
-			mapX, mapY := gameCamera.X + x, gameCamera.Y + y
+			mapX, mapY := gameCamera.X+x, gameCamera.Y+y
 
 			if gameMap.Tiles[mapX][mapY].Visible {
 				if gameMap.Tiles[mapX][mapY].IsWall() {
@@ -269,47 +273,47 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "T", Color: "dark green", Name: "Troll"},
-					"hitpoints": ecs.HitPointComponent{Hp: 20, MaxHP: 20},
-					"block": ecs.BlockingComponent{},
-					"movement": ecs.MovementComponent{},
+					"appearance":     ecs.AppearanceComponent{Layer: 1, Character: "T", Color: "dark green", Name: "Troll"},
+					"hitpoints":      ecs.HitPointComponent{Hp: 20, MaxHP: 20},
+					"block":          ecs.BlockingComponent{},
+					"movement":       ecs.MovementComponent{},
 					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
-					"attacker": ecs.AttackerComponent{Attack: 10, Defense: 7},
-					"killable": ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
+					"attacker":       ecs.AttackerComponent{Attack: 10, Defense: 7},
+					"killable":       ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
 			} else if chance > 2 && chance <= 3 {
 				// Create an Orc
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "o", Color: "darker green", Name: "Orc"},
-					"hitpoints": ecs.HitPointComponent{Hp: 15, MaxHP: 15},
-					"block": ecs.BlockingComponent{},
-					"movement": ecs.MovementComponent{},
+					"appearance":     ecs.AppearanceComponent{Layer: 1, Character: "o", Color: "darker green", Name: "Orc"},
+					"hitpoints":      ecs.HitPointComponent{Hp: 15, MaxHP: 15},
+					"block":          ecs.BlockingComponent{},
+					"movement":       ecs.MovementComponent{},
 					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
-					"attacker": ecs.AttackerComponent{Attack: 7, Defense: 5},
-					"killable": ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
+					"attacker":       ecs.AttackerComponent{Attack: 7, Defense: 5},
+					"killable":       ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
 			} else if chance > 5 && chance <= 7 {
 				// Create a Goblin
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "g", Color: "green", Name: "Goblin"},
-					"hitpoints": ecs.HitPointComponent{Hp: 5, MaxHP: 5},
-					"block": ecs.BlockingComponent{},
-					"movement": ecs.MovementComponent{},
+					"appearance":     ecs.AppearanceComponent{Layer: 1, Character: "g", Color: "green", Name: "Goblin"},
+					"hitpoints":      ecs.HitPointComponent{Hp: 5, MaxHP: 5},
+					"block":          ecs.BlockingComponent{},
+					"movement":       ecs.MovementComponent{},
 					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
-					"attacker": ecs.AttackerComponent{Attack: 2, Defense: 2},
-					"killable": ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
+					"attacker":       ecs.AttackerComponent{Attack: 2, Defense: 2},
+					"killable":       ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
 			} else if chance > 10 {
 				// Create a reproducing Fungus
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "f", Color: "yellow", Name: "Fungus"},
-					"hitpoints": ecs.HitPointComponent{Hp: 5, MaxHP: 5},
-					"block": ecs.BlockingComponent{},
+					"hitpoints":  ecs.HitPointComponent{Hp: 5, MaxHP: 5},
+					"block":      ecs.BlockingComponent{},
 					"reproducer": ecs.ReproducesComponent{MaxTimes: 8, TimesRemaining: 8, PercentChance: 25},
-					"killable": ecs.KillableComponent{Name: "Remains of", Color: "yellow", Character: "."}})
+					"killable":   ecs.KillableComponent{Name: "Remains of", Color: "yellow", Character: "."}})
 			}
 
 			entities = append(entities, createdEntity)

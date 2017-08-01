@@ -1,13 +1,13 @@
 package fov
 
 import (
-	"math"
 	"bearrogue/gamemap"
+	"math"
 )
 
 type FieldOfVision struct {
-	cosTable map[int]float64
-	sinTable map[int]float64
+	cosTable    map[int]float64
+	sinTable    map[int]float64
 	torchRadius int
 }
 
@@ -37,7 +37,7 @@ func (f *FieldOfVision) RayCast(playerX, playerY int, gameMap *gamemap.Map) {
 	// (blocks sight), stop, as the player will not be able to see past that. Every visible tile will get the Visible
 	// and Explored properties set to true.
 
-	for i := 0; i < 360; i ++ {
+	for i := 0; i < 360; i++ {
 
 		ax := f.sinTable[i]
 		ay := f.cosTable[i]
@@ -56,7 +56,7 @@ func (f *FieldOfVision) RayCast(playerX, playerY int, gameMap *gamemap.Map) {
 			roundedX := int(Round(x))
 			roundedY := int(Round(y))
 
-			if x < 0 || x > float64(gameMap.Width - 1) || y < 0 || y > float64(gameMap.Height - 1) {
+			if x < 0 || x > float64(gameMap.Width-1) || y < 0 || y > float64(gameMap.Height-1) {
 				// If the ray is cast outside of the map, stop
 				break
 			}

@@ -24,10 +24,10 @@ func (pc PositionComponent) IsAIComponent() bool {
 
 // Appearance Component
 type AppearanceComponent struct {
-	Color string
+	Color     string
 	Character string
-	Layer int
-	Name string
+	Layer     int
+	Name      string
 }
 
 func (a AppearanceComponent) IsAIComponent() bool {
@@ -36,7 +36,6 @@ func (a AppearanceComponent) IsAIComponent() bool {
 
 // Movement Component
 type MovementComponent struct {
-
 }
 
 func (m MovementComponent) IsAIComponent() bool {
@@ -45,7 +44,6 @@ func (m MovementComponent) IsAIComponent() bool {
 
 // Controllable Component
 type ControllableComponent struct {
-
 }
 
 func (c ControllableComponent) IsAIComponent() bool {
@@ -53,7 +51,7 @@ func (c ControllableComponent) IsAIComponent() bool {
 }
 
 type HitPointComponent struct {
-	Hp int
+	Hp    int
 	MaxHP int
 }
 
@@ -63,7 +61,7 @@ func (h HitPointComponent) IsAIComponent() bool {
 
 // Attacker Component
 type AttackerComponent struct {
-	Attack int
+	Attack  int
 	Defense int
 }
 
@@ -73,7 +71,6 @@ func (a AttackerComponent) IsAIComponent() bool {
 
 // Blocking Component
 type BlockingComponent struct {
-
 }
 
 func (b BlockingComponent) IsAIComponent() bool {
@@ -82,7 +79,6 @@ func (b BlockingComponent) IsAIComponent() bool {
 
 // Random Movement Component - wanders aimlessly around the map
 type RandomMovementComponent struct {
-
 }
 
 func (r RandomMovementComponent) IsAIComponent() bool {
@@ -100,9 +96,9 @@ func (b BasicMeleeAIComponent) IsAIComponent() bool {
 
 // Reproduces Component
 type ReproducesComponent struct {
-	MaxTimes int
+	MaxTimes       int
 	TimesRemaining int
-	PercentChance int
+	PercentChance  int
 }
 
 func (r ReproducesComponent) IsAIComponent() bool {
@@ -112,13 +108,10 @@ func (r ReproducesComponent) IsAIComponent() bool {
 // Killable Component
 type KillableComponent struct {
 	Character string
-	Color string
-	Name string
+	Color     string
+	Name      string
 }
 
 func (k KillableComponent) IsAIComponent() bool {
 	return false
 }
-
-
-

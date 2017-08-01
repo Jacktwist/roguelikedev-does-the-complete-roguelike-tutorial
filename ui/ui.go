@@ -5,7 +5,7 @@ import (
 )
 
 type MessageLog struct {
-	messages []string
+	messages  []string
 	MaxLength int
 }
 
@@ -40,11 +40,11 @@ func (ml *MessageLog) PrintMessages(viewAreaY, windowSizeX, windowSizeY int) {
 	blt.Color(blt.ColorFromName("white"))
 	blt.Layer(1)
 	for i := toShow; i > 0; i-- {
-		blt.Print(1, (viewAreaY - 1) + i, ml.messages[i - 1])
+		blt.Print(1, (viewAreaY-1)+i, ml.messages[i-1])
 	}
 }
 
 func clearMessages(viewAreaY, windowSizeX, windowSizeY int) {
 	// Clear the message area, so our messages do not overlap
-	blt.ClearArea(0, viewAreaY, windowSizeX, windowSizeY - viewAreaY)
+	blt.ClearArea(0, viewAreaY, windowSizeX, windowSizeY-viewAreaY)
 }

@@ -12,7 +12,7 @@ func (s BySize) Len() int {
 }
 
 func (s BySize) Swap(i, j int) {
-	s[i], s[j]= s[j], s[i]
+	s[i], s[j] = s[j], s[i]
 }
 
 func (s BySize) Less(i, j int) bool {
@@ -20,13 +20,13 @@ func (s BySize) Less(i, j int) bool {
 }
 
 type Tile struct {
-	Blocked bool
+	Blocked      bool
 	Blocks_sight bool
-	Visited bool
-	Explored bool
-	Visible bool
-	X int
-	Y int
+	Visited      bool
+	Explored     bool
+	Visible      bool
+	X            int
+	Y            int
 }
 
 func (t *Tile) IsWall() bool {
@@ -51,7 +51,7 @@ func (m *Map) InitializeMap() {
 	}
 
 	// Set a seed for procedural generation
-	rand.Seed( time.Now().UTC().UnixNano())
+	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func (m *Map) IsBlocked(x, y int) bool {
