@@ -27,6 +27,7 @@ const (
 )
 
 var (
+	version		string
 	buildStamp  string
 	gitHash		string
 	player      *ecs.GameEntity
@@ -41,6 +42,7 @@ var (
 func init() {
 	blt.Open()
 
+	fmt.Printf("BearRogue -- Version %s\n", version)
 	fmt.Printf("Build Stamp: %s\n", buildStamp)
 	fmt.Printf("Git Hash: %s\n", gitHash)
 
