@@ -2,13 +2,14 @@ package main
 
 import (
 	blt "bearlibterminal"
-	"camera"
-	"ecs"
-	"fov"
-	"gamemap"
+	"bearrogue/camera"
+	"bearrogue/ecs"
+	"bearrogue/fov"
+	"bearrogue/gamemap"
 	"strconv"
-	"ui"
+	"bearrogue/ui"
 	"math/rand"
+	"fmt"
 )
 
 const (
@@ -63,6 +64,7 @@ func init() {
 	player.AddComponent("attacker", ecs.AttackerComponent{Attack: 5, Defense: 5})
 	player.AddComponent("hitpoints", ecs.HitPointComponent{Hp: 20, MaxHP: 20})
 	player.AddComponent("block", ecs.BlockingComponent{})
+	player.AddComponent("killable", ecs.KillableComponent{Name: "Here lies", Character: "%", Color: "dark red"})
 
 	entities = append(entities, player)
 

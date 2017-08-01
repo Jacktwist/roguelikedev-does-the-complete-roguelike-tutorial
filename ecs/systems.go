@@ -2,9 +2,9 @@ package ecs
 
 import (
 	blt "bearlibterminal"
-	"camera"
-	"gamemap"
-	"ui"
+	"bearrogue/camera"
+	"bearrogue/gamemap"
+	"bearrogue/ui"
 	"math/rand"
 	"strconv"
 )

@@ -2,7 +2,7 @@ package fov
 
 import (
 	"math"
-	"gamemap"
+	"bearrogue/gamemap"
 )
 
 type FieldOfVision struct {
