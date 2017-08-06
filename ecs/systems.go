@@ -126,7 +126,7 @@ func SystemBasicMeleeAI(entity *GameEntity, entities []*GameEntity, gameMap *gam
 
 			if oldTarget != basicMeleeAi.target {
 				targetAppearanceComponent, _ := basicMeleeAi.target.Components["appearance"].(AppearanceComponent)
-				messageLog.SendMessage("The " + appearanceComponent.Name + " throws an angry glare at " + targetAppearanceComponent.Name + "!")
+				messageLog.SendMessage("The [color=" + appearanceComponent.Color + "]" + appearanceComponent.Name + "[/color] throws an angry glare at [color=" + targetAppearanceComponent.Color + "]" + targetAppearanceComponent.Name + "[/color]!")
 			}
 
 			entity.RemoveComponent("basic_melee_ai")
@@ -187,7 +187,7 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 				targetEntity.AddComponent("hitpoints", tHitPointsComponent)
 
 				if entity.HasComponent("player") || targetEntity.HasComponent("player") {
-					messageLog.SendMessage(eAppearanceComponent.Name + " attacks the " + tAppearanceComponent.Name + " for " + strconv.Itoa(excess) + " points of damage.")
+					messageLog.SendMessage("[color=" + eAppearanceComponent.Color + "]" + eAppearanceComponent.Name + "[/color] attacks the [color=" + tAppearanceComponent.Color + "]" + tAppearanceComponent.Name + "[/color] for " + strconv.Itoa(excess) + " points of damage.")
 				}
 
 				// Check to see if this attack has reduced the targets HP to 0 or less
@@ -195,7 +195,7 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 					// This entity has died, replace it with a corpse, and remove all movement and blocking components
 					if targetEntity.HasComponent("killable") {
 						if entity.HasComponent("player") || targetEntity.HasComponent("player") {
-							messageLog.SendMessage("The " + tAppearanceComponent.Name + " has been killed!")
+							messageLog.SendMessage("The [color=" + tAppearanceComponent.Color + "]" + tAppearanceComponent.Name + "[/color] has been killed!")
 						}
 
 						killableComponent, _ := targetEntity.Components["killable"].(KillableComponent)
@@ -211,6 +211,10 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 						targetEntity.RemoveComponents([]string{"movement", "attacker", "block", "random_movement", "hitpoints", "reproducer"})
 					}
 				}
+			} else {
+				if entity.HasComponent("player") || targetEntity.HasComponent("player") {
+					messageLog.SendMessage("[color=" + eAppearanceComponent.Color + "]" + eAppearanceComponent.Name + "[/color] attacks the [color=" + tAppearanceComponent.Color + "]" + tAppearanceComponent.Name + "[/color], but does no damage!")
+				}
 			}
 		} else if targetEntity.HasComponent("appearance") {
 			// The target cannot be attacked
@@ -218,7 +222,7 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 			tAppearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
 
 			if entity.HasComponent("player") || targetEntity.HasComponent("player") {
-				messageLog.SendMessage(eAppearanceComponent.Name + " bumps into the " + tAppearanceComponent.Name + "\n")
+				messageLog.SendMessage("[color=" + eAppearanceComponent.Color + "]" + eAppearanceComponent.Name+ "[/color] bumps into the [color=" + tAppearanceComponent.Color + "]" +  tAppearanceComponent.Name + "[/color]\n")
 			}
 		}
 	}

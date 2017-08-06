@@ -15,10 +15,10 @@ import (
 const (
 	WindowSizeX = 100
 	WindowSizeY = 35
-	ViewAreaX   = 100
+	ViewAreaX   = 75
 	ViewAreaY   = 30
-	MapWidth    = 100
-	MapHeight   = 35
+	MapWidth    = 150
+	MapHeight   = 150
 	Title       = "BearRogue"
 	Font        = "fonts/UbuntuMono.ttf"
 	FontSize    = 24
@@ -110,6 +110,8 @@ func init() {
 func main() {
 	// Main game loop
 
+	renderSideBar()
+
 	messageLog.SendMessage("You find yourself in the caverns of eternal sadness...you start to feel a little more sad.")
 	messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
 	renderMap()
@@ -150,6 +152,7 @@ func main() {
 		renderMap()
 		ecs.SystemRender(entities, gameCamera, gameMap)
 		messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
+		renderSideBar()
 	}
 
 	blt.Close()
@@ -236,6 +239,18 @@ func renderMap() {
 	}
 }
 
+func renderSideBar() {
+	blt.Layer(0)
+	blt.ClearArea(ViewAreaX, 0, WindowSizeX, WindowSizeY)
+
+	if player.HasComponents([]string{"appearance", "hitpoints"}) {
+		playerAppearance, _ := player.Components["appearance"].(ecs.AppearanceComponent)
+		playerHp, _ := player.Components["hitpoints"].(ecs.HitPointComponent)
+		ui.PrintBasicCharacterInfo(playerAppearance.Name, ViewAreaX)
+		ui.PrintStats(playerHp.Hp, playerHp.MaxHP, ViewAreaX)
+	}
+}
+
 /* Generator functions */
 func GenerateAndPopulateCavern() (int, int, []*ecs.GameEntity) {
 	gameMap := gameMap.GenerateCavern()
@@ -253,7 +268,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 	var entities []*ecs.GameEntity
 	var createdEntity *ecs.GameEntity
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 30; i++ {
 		x := 0
 		y := 0
 		locationFound := false
@@ -270,7 +285,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 
 		if locationFound {
 			chance := rand.Intn(100)
-			if chance <= 1 {
+			if chance <= 5 {
 				// Create a Troll
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
@@ -282,7 +297,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
 					"attacker":       ecs.AttackerComponent{Attack: 10, Defense: 7},
 					"killable":       ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
-			} else if chance > 2 && chance <= 3 {
+			} else if chance > 5 && chance <= 20 {
 				// Create an Orc
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
@@ -294,7 +309,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
 					"attacker":       ecs.AttackerComponent{Attack: 7, Defense: 5},
 					"killable":       ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
-			} else if chance > 5 && chance <= 7 {
+			} else if chance > 20 && chance <= 70 {
 				// Create a Goblin
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
@@ -306,7 +321,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 					"basic_melee_ai": ecs.BasicMeleeAIComponent{},
 					"attacker":       ecs.AttackerComponent{Attack: 2, Defense: 2},
 					"killable":       ecs.KillableComponent{Name: "Remains of", Color: "dark red", Character: "%"}})
-			} else if chance > 10 {
+			} else if chance > 70 {
 				// Create a reproducing Fungus
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
