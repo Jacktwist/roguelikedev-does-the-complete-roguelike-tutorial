@@ -25,7 +25,7 @@ func (ml *MessageLog) SendMessage(message string) {
 func (ml *MessageLog) PrintMessages(viewAreaY, windowSizeX, windowSizeY int) {
 	// Print the latest five messages from the messageLog. These will be printed in reverse order (newest at the top),
 	// to make it appear they are scrolling down the screen
-	clearMessages(viewAreaY, windowSizeX, windowSizeY)
+	clearMessages(viewAreaY, windowSizeX, windowSizeY, 1)
 
 	toShow := 0
 
@@ -44,7 +44,16 @@ func (ml *MessageLog) PrintMessages(viewAreaY, windowSizeX, windowSizeY int) {
 	}
 }
 
-func clearMessages(viewAreaY, windowSizeX, windowSizeY int) {
+func clearMessages(viewAreaY, windowSizeX, windowSizeY, layer int) {
 	// Clear the message area, so our messages do not overlap
-	blt.ClearArea(0, viewAreaY, windowSizeX, windowSizeY-viewAreaY)
+	for i := 0; i <= 2; i++ {
+		blt.Layer(i)
+		blt.ClearArea(0, viewAreaY, windowSizeX, windowSizeY-viewAreaY)
+	}
+}
+
+func PrintToMessageArea(message string, viewAreaY, windowSizeX, windowSizeY, layer int) {
+	// Clear the message area, and print a single message at the top
+	clearMessages(viewAreaY, windowSizeX, windowSizeY, layer)
+	blt.Print(1, viewAreaY, message)
 }

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"bearrogue/examinecursor"
 )
 
 const (
@@ -17,8 +18,8 @@ const (
 	WindowSizeY = 35
 	ViewAreaX   = 75
 	ViewAreaY   = 30
-	MapWidth    = 150
-	MapHeight   = 150
+	MapWidth    = 100
+	MapHeight   = 30
 	Title       = "BearRogue"
 	Font        = "fonts/UbuntuMono.ttf"
 	FontSize    = 24
@@ -37,6 +38,8 @@ var (
 	fieldOfView *fov.FieldOfVision
 	gameTurn    int
 	messageLog  ui.MessageLog
+	examining 	bool
+	examineCursor	*examinecursor.XCursor
 )
 
 func init() {
@@ -105,6 +108,10 @@ func init() {
 	// Set up the messageLog, and output a "welcome" message
 	messageLog = ui.MessageLog{MaxLength: 100}
 	messageLog.InitMessages()
+
+	// Set the default examining state to false, which means movement is normal. If this is true, only the examinecursor will
+	// be moved, until the player cancels examine mode
+	examining = false
 }
 
 func main() {
@@ -113,9 +120,10 @@ func main() {
 	renderSideBar()
 
 	messageLog.SendMessage("You find yourself in the caverns of eternal sadness...you start to feel a little more sad.")
-	messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
 	renderMap()
 	ecs.SystemRender(entities, gameCamera, gameMap)
+	messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
+
 
 	for {
 		blt.Refresh()
@@ -151,7 +159,13 @@ func main() {
 
 		renderMap()
 		ecs.SystemRender(entities, gameCamera, gameMap)
-		messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
+
+		if examining {
+			examineCursor.Draw(gameCamera)
+		} else {
+			// Only print messages if the player is not examining
+			messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
+		}
 		renderSideBar()
 	}
 
@@ -164,6 +178,8 @@ func handleInput(key int, entity *ecs.GameEntity) {
 	var (
 		dx, dy int
 	)
+
+	actionTaken := true
 
 	switch key {
 	case blt.TK_RIGHT, blt.TK_L:
@@ -182,25 +198,49 @@ func handleInput(key int, entity *ecs.GameEntity) {
 		dx, dy = -1, 1
 	case blt.TK_N:
 		dx, dy = 1, 1
+	case blt.TK_X:
+		// Look command - toggle the examining flag, and notify that this will not consume an action
+		actionTaken = false
+		examining = !examining
+
+		if player.HasComponent("position") && examining {
+			pos, _ := player.Components["position"].(ecs.PositionComponent)
+			examineCursor = &examinecursor.XCursor{X: pos.X, Y: pos.Y, Character: "_", Layer: 2}
+		} else {
+			examineCursor.Clear(gameCamera)
+		}
 	}
 
-	// Fire off the movement system
-	ecs.SystemMovement(entity, dx, dy, entities, gameMap, &messageLog)
+	if examining {
+		// Fire off examinecursor movement
+		examine(dx, dy)
+	} else {
+		// Fire off the movement system
+		ecs.SystemMovement(entity, dx, dy, entities, gameMap, &messageLog)
+	}
 
-	// Switch the game turn to the Mobs turn
-	gameTurn = MobTurn
+	// Switch the game turn to the Mobs turn, if an action was taken. Some commands, like examine, or checking inventory
+	// do not cost an action
+	if actionTaken  && !examining {
+		gameTurn = MobTurn
+	}
 }
 
 func renderMap() {
 	// Render the game map. If a tile is blocked and blocks sight, draw a '#', if it is not blocked, and does not block
 	// sight, draw a '.'
 
-	// First, set the entire map to not visible. We'll decide what is visible based on the torch radius.
-	// In the process, clear every Tile on the map as well
-	for x := 0; x < gameMap.Width; x++ {
-		for y := 0; y < gameMap.Height; y++ {
-			gameMap.Tiles[x][y].Visible = false
-			blt.Print(x, y, " ")
+	// First, set the every portion of the map seen by the camera to not visible. We'll decide what is visible based on
+	// the torch radius. In the process, clear every camera visible Tile on the map as well
+	for x := 0; x < gameCamera.Width; x++ {
+		for y := 0; y < gameCamera.Height; y++ {
+			// Clear both our primary layers, so we don't get any strange artifacts from one layer or the other getting
+			// cleared.
+			for i := 0; i <= 1; i++ {
+				blt.Layer(i)
+				gameMap.Tiles[x][y].Visible = false
+				blt.Print(x, y, " ")
+			}
 		}
 	}
 
@@ -248,6 +288,32 @@ func renderSideBar() {
 		playerHp, _ := player.Components["hitpoints"].(ecs.HitPointComponent)
 		ui.PrintBasicCharacterInfo(playerAppearance.Name, ViewAreaX)
 		ui.PrintStats(playerHp.Hp, playerHp.MaxHP, ViewAreaX)
+	}
+}
+
+func examine(dx, dy int) {
+	// Examine command - Creates a new cursor, that moves independantly of the player, takes no actions, and will list
+	// out any entities present at the location it is position on.
+	examineCursor.Clear(gameCamera)
+
+	examineCursor.Move(dx, dy, ViewAreaX, ViewAreaY, gameCamera)
+
+	examineCursor.Draw(gameCamera)
+	
+	if gameMap.IsVisibleOrExplored(examineCursor.X, examineCursor.Y) {
+		presentEntities := ecs.GetEntitiesPresentAtLocation(entities, examineCursor.X, examineCursor.Y)
+		if presentEntities != "" {
+			ui.PrintToMessageArea(presentEntities, ViewAreaY, WindowSizeX, WindowSizeY, examineCursor.Layer)
+		} else {
+			tile := gameMap.Tiles[examineCursor.X][examineCursor.Y]
+			if tile.IsWall() {
+				ui.PrintToMessageArea("A cavern wall, made of some kind of rock", ViewAreaY, WindowSizeX, WindowSizeY, examineCursor.Layer)
+			} else {
+				ui.PrintToMessageArea("A cavern floor, covered in dirt and stones", ViewAreaY, WindowSizeX, WindowSizeY, examineCursor.Layer)
+			}
+		}
+	} else {
+		ui.PrintToMessageArea("You cannot see here...", ViewAreaY, WindowSizeX, WindowSizeY, examineCursor.Layer)
 	}
 }
 

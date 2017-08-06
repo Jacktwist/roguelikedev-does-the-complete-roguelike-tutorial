@@ -41,3 +41,13 @@ func (c *GameCamera) ToCameraCoordinates(mapX int, mapY int) (cameraX int, camer
 
 	return x, y
 }
+
+func (c *GameCamera) ToMapCoordinates(cameraX, cameraY int) (mapX, mapY int) {
+	x, y := cameraX + c.X, cameraY + c.Y
+
+	if x < 0 || y < 0 || x >= c.Width || y >= c.Height {
+		return -1, -1
+	}
+
+	return x, y
+}
