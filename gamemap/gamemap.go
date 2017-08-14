@@ -72,8 +72,8 @@ func (m *Map) IsVisibleToPlayer(x, y int) bool {
 	}
 }
 
-func (m *Map) IsVisibleOrExplored(x, y int) bool {
-	if m.Tiles[x][y].Visible || m.Tiles[x][y].Explored {
+func (m *Map) IsVisibleAndExplored(x, y int) bool {
+	if m.Tiles[x][y].Visible && m.Tiles[x][y].Explored {
 		return true
 	} else {
 		return false

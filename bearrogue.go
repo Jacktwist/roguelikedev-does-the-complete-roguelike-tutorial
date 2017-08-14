@@ -237,7 +237,7 @@ func renderMap() {
 			gameMap.Tiles[x][y].Visible = false
 		}
 	}
-	
+
 	for x := 0; x < gameCamera.Width; x++ {
 		for y := 0; y < gameCamera.Height; y++ {
 			// Clear both our primary layers, so we don't get any strange artifacts from one layer or the other getting
@@ -305,7 +305,7 @@ func examine(dx, dy int) {
 
 	examineCursor.Draw(gameCamera)
 
-	if gameMap.IsVisibleOrExplored(examineCursor.X, examineCursor.Y) {
+	if gameMap.IsVisibleAndExplored(examineCursor.X, examineCursor.Y) {
 		presentEntities := ecs.GetEntitiesPresentAtLocation(entities, examineCursor.X, examineCursor.Y)
 		if presentEntities != "" {
 			ui.PrintToMessageArea(presentEntities, ViewAreaY, WindowSizeX, WindowSizeY, examineCursor.Layer)
