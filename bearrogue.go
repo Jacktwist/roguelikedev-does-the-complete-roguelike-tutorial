@@ -232,13 +232,18 @@ func renderMap() {
 
 	// First, set the every portion of the map seen by the camera to not visible. We'll decide what is visible based on
 	// the torch radius. In the process, clear every camera visible Tile on the map as well
+	for x := 0; x < MapWidth; x++ {
+		for y := 0; y < MapHeight; y++ {
+			gameMap.Tiles[x][y].Visible = false
+		}
+	}
+	
 	for x := 0; x < gameCamera.Width; x++ {
 		for y := 0; y < gameCamera.Height; y++ {
 			// Clear both our primary layers, so we don't get any strange artifacts from one layer or the other getting
 			// cleared.
 			for i := 0; i <= 1; i++ {
 				blt.Layer(i)
-				gameMap.Tiles[x][y].Visible = false
 				blt.Print(x, y, " ")
 			}
 		}
