@@ -19,7 +19,7 @@ const (
 	ViewAreaX   = 75
 	ViewAreaY   = 30
 	MapWidth    = 100
-	MapHeight   = 30
+	MapHeight   = 100
 	Title       = "BearRogue"
 	Font        = "fonts/UbuntuMono.ttf"
 	FontSize    = 24
@@ -292,14 +292,14 @@ func renderSideBar() {
 }
 
 func examine(dx, dy int) {
-	// Examine command - Creates a new cursor, that moves independantly of the player, takes no actions, and will list
+	// Examine command - Creates a new cursor, that moves independently of the player, takes no actions, and will list
 	// out any entities present at the location it is position on.
 	examineCursor.Clear(gameCamera)
 
-	examineCursor.Move(dx, dy, ViewAreaX, ViewAreaY, gameCamera)
+	examineCursor.Move(dx, dy, MapWidth, MapHeight, gameCamera)
 
 	examineCursor.Draw(gameCamera)
-	
+
 	if gameMap.IsVisibleOrExplored(examineCursor.X, examineCursor.Y) {
 		presentEntities := ecs.GetEntitiesPresentAtLocation(entities, examineCursor.X, examineCursor.Y)
 		if presentEntities != "" {

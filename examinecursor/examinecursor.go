@@ -13,19 +13,25 @@ type XCursor struct {
 }
 
 func (c *XCursor) Move(dx, dy, maxX, maxY int, gameCamera *camera.GameCamera) {
+
+	oldCX, oldCY := c.X, c.Y
+
 	c.X += dx
 	c.Y += dy
 
-	if c.X < 0 {
-		c.X = 0
-	} else if c.X >= maxX {
-		c.X = maxX - 2
+	cameraX, cameraY := gameCamera.ToCameraCoordinates(c.X, c.Y)
+
+	// Check if the cursor is outside the camera bounds. If it is, set it back to it original position.
+	if cameraX < 0 {
+		c.X = oldCX
+	} else if cameraX >= maxX {
+		c.X = oldCX
 	}
 
-	if c.Y < 0 {
-		c.Y = 0
-	} else if c.Y >= maxY {
-		c.Y = maxY - 2
+	if cameraY < 0 {
+		c.Y = oldCY
+	} else if cameraY >= maxY {
+		c.Y = oldCY
 	}
 }
 
