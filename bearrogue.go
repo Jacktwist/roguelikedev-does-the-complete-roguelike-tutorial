@@ -4,46 +4,46 @@ import (
 	blt "bearlibterminal"
 	"bearrogue/camera"
 	"bearrogue/ecs"
+	"bearrogue/examinecursor"
 	"bearrogue/fov"
 	"bearrogue/gamemap"
 	"bearrogue/ui"
 	"fmt"
 	"math/rand"
 	"strconv"
-	"bearrogue/examinecursor"
 )
 
 const (
-	WindowSizeX = 100
-	WindowSizeY = 35
-	ViewAreaX   = 75
-	ViewAreaY   = 30
-	MapWidth    = 100
-	MapHeight   = 100
-	Title       = "BearRogue"
-	Font        = "fonts/UbuntuMono.ttf"
-	FontSize    = 24
-	PlayerTurn  = iota
-	MobTurn     = iota
-	MapLayer = 0
-	ActorLayer = 2
-	ItemLayer = 3
+	WindowSizeX  = 100
+	WindowSizeY  = 35
+	ViewAreaX    = 75
+	ViewAreaY    = 30
+	MapWidth     = 100
+	MapHeight    = 100
+	Title        = "BearRogue"
+	Font         = "fonts/UbuntuMono.ttf"
+	FontSize     = 24
+	PlayerTurn   = iota
+	MobTurn      = iota
+	MapLayer     = 0
+	ActorLayer   = 2
+	ItemLayer    = 3
 	ExamineLayer = 4
 )
 
 var (
-	version		string
-	buildStamp  string
-	gitHash		string
-	player      *ecs.GameEntity
-	entities    []*ecs.GameEntity
-	gameMap     *gamemap.Map
-	gameCamera  *camera.GameCamera
-	fieldOfView *fov.FieldOfVision
-	gameTurn    int
-	messageLog  ui.MessageLog
-	examining 	bool
-	examineCursor	*examinecursor.XCursor
+	version       string
+	buildStamp    string
+	gitHash       string
+	player        *ecs.GameEntity
+	entities      []*ecs.GameEntity
+	gameMap       *gamemap.Map
+	gameCamera    *camera.GameCamera
+	fieldOfView   *fov.FieldOfVision
+	gameTurn      int
+	messageLog    ui.MessageLog
+	examining     bool
+	examineCursor *examinecursor.XCursor
 )
 
 func init() {
@@ -128,7 +128,6 @@ func main() {
 	renderMap()
 	ecs.SystemRender(entities, gameCamera, gameMap)
 	messageLog.PrintMessages(ViewAreaY, WindowSizeX, WindowSizeY)
-
 
 	for {
 		blt.Refresh()
@@ -235,7 +234,7 @@ func handleInput(key int, entity *ecs.GameEntity) {
 
 	// Switch the game turn to the Mobs turn, if an action was taken. Some commands, like examine, or checking inventory
 	// do not cost an action
-	if actionTaken  && !examining {
+	if actionTaken && !examining {
 		gameTurn = MobTurn
 	}
 }
@@ -449,7 +448,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 			createdEntity.SetupGameEntity()
 			createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
 				"appearance": ecs.AppearanceComponent{Layer: ItemLayer, Character: "!", Color: "dark red", Name: "Dark Red Potion"},
-				"lootable": ecs.LootableComponent{InInventory: false}})
+				"lootable":   ecs.LootableComponent{InInventory: false}})
 
 			entities = append(entities, createdEntity)
 		} else {

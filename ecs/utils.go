@@ -28,7 +28,7 @@ func GetEntitiesPresentAtLocation(entities []*GameEntity, x, y int) []*GameEntit
 			if e.HasComponents([]string{"position", "appearance"}) {
 				pos, _ := e.Components["position"].(PositionComponent)
 
-				if pos.X == x && pos.Y == y && !e.HasComponent("player"){
+				if pos.X == x && pos.Y == y && !e.HasComponent("player") {
 					// This entity is present at the currently examined location, so add its name to the list of present
 					// entities
 					entitiesPresent = append(entitiesPresent, e)
@@ -62,7 +62,7 @@ func GetEntityNamesPresentAtLocation(entities []*GameEntity, x, y int) string {
 	if len(entitiesPresent) > 0 {
 		listLen := len(entitiesPresent)
 		for i := 0; i < len(entitiesPresent); i++ {
-			if listLen == 1 || i == listLen - 1 {
+			if listLen == 1 || i == listLen-1 {
 				entitiesList += entitiesPresent[i]
 			} else {
 				entitiesList += entitiesPresent[i] + ", "

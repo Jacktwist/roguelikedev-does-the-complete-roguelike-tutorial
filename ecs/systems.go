@@ -242,7 +242,7 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 			tAppearanceComponent, _ := targetEntity.Components["appearance"].(AppearanceComponent)
 
 			if entity.HasComponent("player") || targetEntity.HasComponent("player") {
-				messageLog.SendMessage("[color=" + eAppearanceComponent.Color + "]" + eAppearanceComponent.Name+ "[/color] bumps into the [color=" + tAppearanceComponent.Color + "]" +  tAppearanceComponent.Name + "[/color]\n")
+				messageLog.SendMessage("[color=" + eAppearanceComponent.Color + "]" + eAppearanceComponent.Name + "[/color] bumps into the [color=" + tAppearanceComponent.Color + "]" + tAppearanceComponent.Name + "[/color]\n")
 			}
 		}
 	}

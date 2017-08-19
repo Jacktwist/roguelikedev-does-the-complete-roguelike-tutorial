@@ -119,7 +119,7 @@ func (k KillableComponent) IsAIComponent() bool {
 // Inventory Component
 type InventoryComponent struct {
 	Capacity int
-	Items []*GameEntity
+	Items    []*GameEntity
 }
 
 func (i InventoryComponent) IsAIComponent() bool {
@@ -129,7 +129,7 @@ func (i InventoryComponent) IsAIComponent() bool {
 // Lootable Component
 type LootableComponent struct {
 	InInventory bool
-	Owner *GameEntity
+	Owner       *GameEntity
 }
 
 func (l LootableComponent) IsAIComponent() bool {

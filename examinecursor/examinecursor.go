@@ -6,10 +6,10 @@ import (
 )
 
 type XCursor struct {
-	X int
-	Y int
+	X         int
+	Y         int
 	Character string
-	Layer int
+	Layer     int
 }
 
 func (c *XCursor) Move(dx, dy, maxX, maxY int, gameCamera *camera.GameCamera) {

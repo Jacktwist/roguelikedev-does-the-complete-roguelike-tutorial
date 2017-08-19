@@ -2,8 +2,8 @@ package ui
 
 import (
 	blt "bearlibterminal"
-	"strconv"
 	"math"
+	"strconv"
 )
 
 func PrintBasicCharacterInfo(name string, viewAreaX int) {
@@ -13,8 +13,8 @@ func PrintBasicCharacterInfo(name string, viewAreaX int) {
 	startY := 1
 
 	blt.Print(startX, startY, name)
-	blt.Print(startX, startY + 1, "Unremarkable Human")
-	blt.Print(startX, startY + 2, "\n")
+	blt.Print(startX, startY+1, "Unremarkable Human")
+	blt.Print(startX, startY+2, "\n")
 
 }
 
@@ -23,8 +23,8 @@ func PrintStats(hp, maxHp, viewAreaX int) {
 	startY := 3
 
 	printHpBar(hp, maxHp, startX, startY)
-	blt.Print(startX, startY + 1, "ST: (20/20) [color=yellow]==========[/color]")
-	blt.Print(startX, startY + 2, "MG: (20/20) [color=blue]==========[/color]")
+	blt.Print(startX, startY+1, "ST: (20/20) [color=yellow]==========[/color]")
+	blt.Print(startX, startY+2, "MG: (20/20) [color=blue]==========[/color]")
 }
 
 func printHpBar(hp, maxHp, startX, startY int) {
@@ -50,7 +50,7 @@ func printHpBar(hp, maxHp, startX, startY int) {
 		}
 	}
 
-	blt.Print(startX, startY, "HP: " + numericRepresentation +" [color=red]" + healthBar + "[/color]")
+	blt.Print(startX, startY, "HP: "+numericRepresentation+" [color=red]"+healthBar+"[/color]")
 }
 
 func round(f float64) float64 {
