@@ -216,6 +216,13 @@ func handleInput(key int, entity *ecs.GameEntity) {
 		}
 	case blt.TK_COMMA:
 		ecs.SystemPickupItem(player, entities, gameMap, &messageLog)
+	case blt.TK_ESCAPE:
+		// Cancel the current action and return the game state to normal
+		actionTaken = false
+		examining = false
+		if examineCursor != nil {
+			examineCursor.Clear(gameCamera)
+		}
 	}
 
 	if examining {
