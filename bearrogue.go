@@ -25,6 +25,10 @@ const (
 	FontSize    = 24
 	PlayerTurn  = iota
 	MobTurn     = iota
+	MapLayer = 0
+	ActorLayer = 2
+	ItemLayer = 3
+	ExamineLayer = 4
 )
 
 var (
@@ -205,10 +209,12 @@ func handleInput(key int, entity *ecs.GameEntity) {
 
 		if player.HasComponent("position") && examining {
 			pos, _ := player.Components["position"].(ecs.PositionComponent)
-			examineCursor = &examinecursor.XCursor{X: pos.X, Y: pos.Y, Character: "_", Layer: 2}
+			examineCursor = &examinecursor.XCursor{X: pos.X, Y: pos.Y, Character: "_", Layer: ExamineLayer}
 		} else {
 			examineCursor.Clear(gameCamera)
 		}
+	case blt.TK_COMMA:
+		ecs.SystemPickupItem(player, entities, gameMap, &messageLog)
 	}
 
 	if examining {
@@ -242,7 +248,7 @@ func renderMap() {
 		for y := 0; y < gameCamera.Height; y++ {
 			// Clear both our primary layers, so we don't get any strange artifacts from one layer or the other getting
 			// cleared.
-			for i := 0; i <= 1; i++ {
+			for i := 0; i <= 2; i++ {
 				blt.Layer(i)
 				blt.Print(x, y, " ")
 			}
@@ -259,6 +265,7 @@ func renderMap() {
 	}
 
 	// Now draw each tile that should appear on the screen, if its visible, or explored
+	blt.Layer(MapLayer)
 	for x := 0; x < gameCamera.Width; x++ {
 		for y := 0; y < gameCamera.Height; y++ {
 			mapX, mapY := gameCamera.X+x, gameCamera.Y+y
@@ -306,7 +313,7 @@ func examine(dx, dy int) {
 	examineCursor.Draw(gameCamera)
 
 	if gameMap.IsVisibleAndExplored(examineCursor.X, examineCursor.Y) {
-		presentEntities := ecs.GetEntitiesPresentAtLocation(entities, examineCursor.X, examineCursor.Y)
+		presentEntities := ecs.GetEntityNamesPresentAtLocation(entities, examineCursor.X, examineCursor.Y)
 		if presentEntities != "" {
 			ui.PrintToMessageArea(presentEntities, ViewAreaY, WindowSizeX, WindowSizeY, examineCursor.Layer)
 		} else {
@@ -339,7 +346,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 	var entities []*ecs.GameEntity
 	var createdEntity *ecs.GameEntity
 
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 10; i++ {
 		x := 0
 		y := 0
 		locationFound := false
@@ -361,7 +368,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance":     ecs.AppearanceComponent{Layer: 1, Character: "T", Color: "dark green", Name: "Troll"},
+					"appearance":     ecs.AppearanceComponent{Layer: ActorLayer, Character: "T", Color: "dark green", Name: "Troll"},
 					"hitpoints":      ecs.HitPointComponent{Hp: 20, MaxHP: 20},
 					"block":          ecs.BlockingComponent{},
 					"movement":       ecs.MovementComponent{},
@@ -373,7 +380,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance":     ecs.AppearanceComponent{Layer: 1, Character: "o", Color: "darker green", Name: "Orc"},
+					"appearance":     ecs.AppearanceComponent{Layer: ActorLayer, Character: "o", Color: "darker green", Name: "Orc"},
 					"hitpoints":      ecs.HitPointComponent{Hp: 15, MaxHP: 15},
 					"block":          ecs.BlockingComponent{},
 					"movement":       ecs.MovementComponent{},
@@ -385,7 +392,7 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance":     ecs.AppearanceComponent{Layer: 1, Character: "g", Color: "green", Name: "Goblin"},
+					"appearance":     ecs.AppearanceComponent{Layer: ActorLayer, Character: "g", Color: "green", Name: "Goblin"},
 					"hitpoints":      ecs.HitPointComponent{Hp: 5, MaxHP: 5},
 					"block":          ecs.BlockingComponent{},
 					"movement":       ecs.MovementComponent{},
@@ -397,12 +404,44 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance": ecs.AppearanceComponent{Layer: 1, Character: "f", Color: "yellow", Name: "Fungus"},
+					"appearance": ecs.AppearanceComponent{Layer: ActorLayer, Character: "f", Color: "yellow", Name: "Fungus"},
 					"hitpoints":  ecs.HitPointComponent{Hp: 5, MaxHP: 5},
 					"block":      ecs.BlockingComponent{},
 					"reproducer": ecs.ReproducesComponent{MaxTimes: 8, TimesRemaining: 8, PercentChance: 25},
 					"killable":   ecs.KillableComponent{Name: "Remains of", Color: "yellow", Character: "."}})
 			}
+
+			entities = append(entities, createdEntity)
+		} else {
+			// No location was found after 50 tries, which means the map is quite full. Stop here and return.
+			break
+		}
+	}
+
+	// Next, populate some items (LootableComponent) in the dungeon in the same way. For now, just health potions will
+	// be created.
+	for i := 0; i < 15; i++ {
+		x := 0
+		y := 0
+		locationFound := false
+		for j := 0; j <= 50; j++ {
+			// Attempt to find a clear location to create a mob (ecs for now)
+			pos := rand.Int() % len(mainCave)
+			x = mainCave[pos].X
+			y = mainCave[pos].Y
+			if ecs.GetBlockingEntitiesAtLocation(entities, x, y) == nil {
+				locationFound = true
+				break
+			}
+		}
+
+		if locationFound {
+			// Create a healing potion
+			createdEntity = &ecs.GameEntity{}
+			createdEntity.SetupGameEntity()
+			createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
+				"appearance": ecs.AppearanceComponent{Layer: ItemLayer, Character: "!", Color: "dark red", Name: "Dark Red Potion"},
+				"lootable": ecs.LootableComponent{InInventory: false}})
 
 			entities = append(entities, createdEntity)
 		} else {

@@ -20,7 +20,27 @@ func GetBlockingEntitiesAtLocation(entities []*GameEntity, destinationX, destina
 	return nil
 }
 
-func GetEntitiesPresentAtLocation(entities []*GameEntity, x, y int) string {
+func GetEntitiesPresentAtLocation(entities []*GameEntity, x, y int) []*GameEntity {
+	entitiesPresent := []*GameEntity{}
+
+	for _, e := range entities {
+		if e != nil {
+			if e.HasComponents([]string{"position", "appearance"}) {
+				pos, _ := e.Components["position"].(PositionComponent)
+
+				if pos.X == x && pos.Y == y {
+					// This entity is present at the currently examined location, so add its name to the list of present
+					// entities
+					entitiesPresent = append(entitiesPresent, e)
+				}
+			}
+		}
+	}
+
+	return entitiesPresent
+}
+
+func GetEntityNamesPresentAtLocation(entities []*GameEntity, x, y int) string {
 	entitiesPresent := []string{}
 
 	for _, e := range entities {

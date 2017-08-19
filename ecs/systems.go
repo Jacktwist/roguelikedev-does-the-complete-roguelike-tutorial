@@ -9,6 +9,10 @@ import (
 	"strconv"
 )
 
+const (
+	CorpseLayer = 2
+)
+
 func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *gamemap.Map) {
 	// Render all renderable entities to the screen
 	for _, e := range entities {
@@ -16,6 +20,8 @@ func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *ga
 			if e.HasComponents([]string{"position", "appearance"}) {
 				pos, _ := e.Components["position"].(PositionComponent)
 				app, _ := e.Components["appearance"].(AppearanceComponent)
+
+				SystemClearAt(e, camera)
 
 				cameraX, cameraY := camera.ToCameraCoordinates(pos.X, pos.Y)
 
@@ -42,6 +48,20 @@ func SystemClear(entities []*GameEntity, camera *camera.GameCamera) {
 			blt.Layer(appearanceComponent.Layer)
 			blt.Print(mapX, mapY, " ")
 		}
+	}
+}
+
+func SystemClearAt(entity *GameEntity, camera *camera.GameCamera) {
+	if entity.HasComponents([]string{"position", "appearance"}) {
+
+		positionComponent, _ := entity.Components["position"].(PositionComponent)
+		appearanceComponent, _ := entity.Components["appearance"].(AppearanceComponent)
+
+		layer := blt.TK_LAYER
+		blt.Layer(appearanceComponent.Layer)
+		cameraX, cameraY := camera.ToCameraCoordinates(positionComponent.X, positionComponent.Y)
+		blt.Print(cameraX, cameraY, " ")
+		blt.Layer(layer)
 	}
 }
 
@@ -203,7 +223,7 @@ func SystemAttack(entity *GameEntity, targetEntity *GameEntity, messageLog *ui.M
 						tAppearanceComponent.Name = killableComponent.Name + " " + tAppearanceComponent.Name
 						tAppearanceComponent.Character = killableComponent.Character
 						tAppearanceComponent.Color = killableComponent.Color
-						tAppearanceComponent.Layer = 1
+						tAppearanceComponent.Layer = CorpseLayer
 
 						targetEntity.RemoveComponent("appearance")
 						targetEntity.AddComponent("appearance", tAppearanceComponent)
@@ -283,4 +303,26 @@ func SystemReproduce(entity *GameEntity, entities []*GameEntity, gameMap *gamema
 		}
 	}
 	return nil
+}
+
+func SystemPickupItem(entity *GameEntity, entities []*GameEntity, gameMap *gamemap.Map, messageLog *ui.MessageLog) {
+	if entity.HasComponent("inventory") {
+		inv, _ := entity.Components["inventory"].(InventoryComponent)
+		pos, _ := entity.Components["position"].(PositionComponent)
+
+		entities := GetEntitiesPresentAtLocation(entities, pos.X, pos.Y)
+
+		if len(entities) > 0 {
+			if len(inv.Items) < inv.Capacity {
+
+			} else {
+				if entity.HasComponent("player") {
+					messageLog.SendMessage("Your inventory is full, and you cannot pick up the ")
+				}
+			}
+		} else {
+			messageLog.SendMessage("There is nothing to pick up here!")
+		}
+
+	}
 }

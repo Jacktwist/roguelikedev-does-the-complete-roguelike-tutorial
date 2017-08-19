@@ -115,3 +115,23 @@ type KillableComponent struct {
 func (k KillableComponent) IsAIComponent() bool {
 	return false
 }
+
+// Inventory Component
+type InventoryComponent struct {
+	Capacity int
+	Items []*GameEntity
+}
+
+func (i InventoryComponent) IsAIComponent() bool {
+	return false
+}
+
+// Lootable Component
+type LootableComponent struct {
+	InInventory bool
+	Owner *GameEntity
+}
+
+func (l LootableComponent) IsAIComponent() bool {
+	return false
+}
