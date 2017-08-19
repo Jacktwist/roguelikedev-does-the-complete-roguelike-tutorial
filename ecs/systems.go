@@ -309,16 +309,42 @@ func SystemPickupItem(entity *GameEntity, entities []*GameEntity, gameMap *gamem
 	if entity.HasComponent("inventory") {
 		inv, _ := entity.Components["inventory"].(InventoryComponent)
 		pos, _ := entity.Components["position"].(PositionComponent)
+		app, _ := entity.Components["appearance"].(AppearanceComponent)
 
-		entities := GetEntitiesPresentAtLocation(entities, pos.X, pos.Y)
+		entitiesPresent := GetEntitiesPresentAtLocation(entities, pos.X, pos.Y)
 
-		if len(entities) > 0 {
-			if len(inv.Items) < inv.Capacity {
+		if len(entitiesPresent) > 0 {
+			// For now, this assumes one entity per tile, which will obviously need to change
+			targetEntity := entitiesPresent[0]
 
-			} else {
-				if entity.HasComponent("player") {
-					messageLog.SendMessage("Your inventory is full, and you cannot pick up the ")
+			targetAppearance, _ := targetEntity.Components["appearance"].(AppearanceComponent)
+
+			if targetEntity.HasComponent("lootable") {
+				targetLootable, _ := targetEntity.Components["lootable"].(LootableComponent)
+
+				// Make sure the lootable is not currently in an inventory
+				if len(inv.Items) < inv.Capacity && !targetLootable.InInventory {
+					// Transfer the lootable entity to the players inventory
+					targetLootable.InInventory = true
+					targetLootable.Owner = entity
+
+					targetEntity.RemoveComponents([]string{"lootable", "position"})
+					targetEntity.AddComponent("lootable", targetLootable)
+
+					inv.Items = append(inv.Items, targetEntity)
+
+					entity.RemoveComponent("inventory")
+					entity.AddComponent("inventory", inv)
+
+					messageLog.SendMessage(app.Name + " picks up the [color=" + targetAppearance.Color + "]" + targetAppearance.Name + "[/color]")
+				} else {
+					if entity.HasComponent("player") {
+						messageLog.SendMessage("Your inventory is full, and you cannot pick up the ")
+					}
 				}
+			} else {
+				// The entity present is not lootable, notify, and do not add it to inventory
+				messageLog.SendMessage("Cannot pick up that [color=" + targetAppearance.Color + "]" + targetAppearance.Name + "[/color]")
 			}
 		} else {
 			messageLog.SendMessage("There is nothing to pick up here!")

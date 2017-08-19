@@ -79,6 +79,7 @@ func init() {
 	player.AddComponent("hitpoints", ecs.HitPointComponent{Hp: 20, MaxHP: 20})
 	player.AddComponent("block", ecs.BlockingComponent{})
 	player.AddComponent("killable", ecs.KillableComponent{Name: "Here lies", Character: "%", Color: "dark red"})
+	player.AddComponent("inventory", ecs.InventoryComponent{Capacity: 32})
 
 	entities = append(entities, player)
 
