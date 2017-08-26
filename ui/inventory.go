@@ -6,15 +6,20 @@ import (
 )
 
 func printHeader(invMax, invUsed int) {
-	blt.Print(1, 1, "Inventory (" + strconv.Itoa(invUsed) + "/" + strconv.Itoa(invMax) + ")")
+	blt.Print(1, 1, "Inventory ("+strconv.Itoa(invUsed)+"/"+strconv.Itoa(invMax)+")")
 	blt.Print(1, 2, "--------------------")
 }
 
 func printInventoryItems(items map[string]int) {
 	y := 3
-	for k, v := range items {
-		blt.Print(1, y, k + " x" + strconv.Itoa(v))
-		y++
+
+	if len(items) > 0 {
+		for k, v := range items {
+			blt.Print(1, y, k+" x"+strconv.Itoa(v))
+			y++
+		}
+	} else {
+		blt.Print(1, y, "You are not carrying anything...")
 	}
 }
 
@@ -31,7 +36,7 @@ func DisplayInformationScreen(title, shortDescription, longDescription string, o
 		blt.Print(1, 6, longDescription)
 	}
 
-	blt.Print(1, 10, "You have " + strconv.Itoa(occurences) + " of these.")
+	blt.Print(1, 10, "You have "+strconv.Itoa(occurences)+" of these.")
 
-	blt.Print(1, windowHeight - 1, "[color=light blue]Actions available:[/color]")
+	blt.Print(1, windowHeight-1, "[color=light blue]Actions available:[/color]")
 }

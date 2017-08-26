@@ -130,8 +130,8 @@ func (i InventoryComponent) IsAIComponent() bool {
 type LootableComponent struct {
 	InInventory bool
 	Owner       *GameEntity
-	ID			int
-	Key 		int
+	ID          int
+	Key         int
 }
 
 func (l LootableComponent) IsAIComponent() bool {
@@ -149,7 +149,7 @@ func (s StackableComponent) IsAIComponent() bool {
 // Description Component
 type DescriptionComponent struct {
 	ShortDesc string
-	LongDesc string
+	LongDesc  string
 }
 
 func (d DescriptionComponent) IsAIComponent() bool {

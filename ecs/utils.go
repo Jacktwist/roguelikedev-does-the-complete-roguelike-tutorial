@@ -100,7 +100,7 @@ func Round(f float64) float64 {
 }
 
 // Inventory related functions
-func getExistingItemKey(entity *GameEntity, targetEntity *GameEntity) int{
+func getExistingItemKey(entity *GameEntity, targetEntity *GameEntity) int {
 	// Check to see if an entity has an identical item in their inventory. This is mostly useful for making sure
 	// identical items get the same key assigned to them
 	if entity.HasComponent("inventory") {

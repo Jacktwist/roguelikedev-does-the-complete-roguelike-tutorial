@@ -32,21 +32,21 @@ const (
 )
 
 var (
-	version       string
-	buildStamp    string
-	gitHash       string
-	player        *ecs.GameEntity
-	entities      []*ecs.GameEntity
-	gameMap       *gamemap.Map
-	gameCamera    *camera.GameCamera
-	fieldOfView   *fov.FieldOfVision
-	gameTurn      int
-	messageLog    ui.MessageLog
-	examining     bool
-	examineCursor *examinecursor.XCursor
-	inMenu		  bool
+	version           string
+	buildStamp        string
+	gitHash           string
+	player            *ecs.GameEntity
+	entities          []*ecs.GameEntity
+	gameMap           *gamemap.Map
+	gameCamera        *camera.GameCamera
+	fieldOfView       *fov.FieldOfVision
+	gameTurn          int
+	messageLog        ui.MessageLog
+	examining         bool
+	examineCursor     *examinecursor.XCursor
+	inMenu            bool
 	informationScreen bool
-	inventoryKeys map[int]bool
+	inventoryKeys     map[int]bool
 )
 
 func init() {
@@ -568,10 +568,10 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance": ecs.AppearanceComponent{Layer: ItemLayer, Character: "!", Color: "dark red", Name: "Dark Red Potion"},
-					"lootable":   ecs.LootableComponent{InInventory: false, ID: 1},
-					"stackable":  ecs.StackableComponent{},
-					"description": ecs.DescriptionComponent{ShortDesc:"An unmarked, single dose, vial of a dark red liquid."}})
+					"appearance":  ecs.AppearanceComponent{Layer: ItemLayer, Character: "!", Color: "dark red", Name: "Dark Red Potion"},
+					"lootable":    ecs.LootableComponent{InInventory: false, ID: 1},
+					"stackable":   ecs.StackableComponent{},
+					"description": ecs.DescriptionComponent{ShortDesc: "An unmarked, single dose, vial of a dark red liquid."}})
 
 				entities = append(entities, createdEntity)
 			} else {
@@ -579,10 +579,10 @@ func populateCavern(mainCave []*gamemap.Tile) []*ecs.GameEntity {
 				createdEntity = &ecs.GameEntity{}
 				createdEntity.SetupGameEntity()
 				createdEntity.AddComponents(map[string]ecs.Component{"position": ecs.PositionComponent{X: x, Y: y},
-					"appearance": ecs.AppearanceComponent{Layer: ItemLayer, Character: "!", Color: "light green", Name: "Bright Green Potion"},
-					"lootable":   ecs.LootableComponent{InInventory: false, ID: 2},
-					"stackable":  ecs.StackableComponent{},
-					"description": ecs.DescriptionComponent{ShortDesc:"An unmarked, single dose, vial of a bright green liquid."}})
+					"appearance":  ecs.AppearanceComponent{Layer: ItemLayer, Character: "!", Color: "light green", Name: "Bright Green Potion"},
+					"lootable":    ecs.LootableComponent{InInventory: false, ID: 2},
+					"stackable":   ecs.StackableComponent{},
+					"description": ecs.DescriptionComponent{ShortDesc: "An unmarked, single dose, vial of a bright green liquid."}})
 
 				entities = append(entities, createdEntity)
 			}

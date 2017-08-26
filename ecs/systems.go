@@ -37,7 +37,7 @@ func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *ga
 
 func SystemClear(entities []*GameEntity, camera *camera.GameCamera) {
 	for _, e := range entities {
-		if e.HasComponents([]string{"position","appearance"}) {
+		if e.HasComponents([]string{"position", "appearance"}) {
 			// Clear the entity from the screen. This only applies to entities that have a position and an
 			// appearance
 			positionComponent, _ := e.Components["position"].(PositionComponent)
