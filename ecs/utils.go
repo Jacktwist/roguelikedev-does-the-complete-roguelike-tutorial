@@ -1,6 +1,8 @@
 package ecs
 
-import "math"
+import (
+	"math"
+)
 
 func GetBlockingEntitiesAtLocation(entities []*GameEntity, destinationX, destinationY int) *GameEntity {
 	// Return any entities that are at the destination location which would block movement
@@ -95,4 +97,67 @@ func distanceTo(originX, originY, targetX, targetY int) int {
 
 func Round(f float64) float64 {
 	return math.Floor(f + .5)
+}
+
+// Inventory related functions
+func getExistingItemKey(entity *GameEntity, targetEntity *GameEntity) int{
+	// Check to see if an entity has an identical item in their inventory. This is mostly useful for making sure
+	// identical items get the same key assigned to them
+	if entity.HasComponent("inventory") {
+		inv, _ := entity.Components["inventory"].(InventoryComponent)
+
+		if targetEntity.HasComponents([]string{"lootable", "appearance"}) {
+			for i := 0; i < len(inv.Items); i++ {
+				if inv.Items[i].HasComponent("appearance") {
+					app, _ := inv.Items[i].Components["appearance"].(AppearanceComponent)
+					targetApp, _ := targetEntity.Components["appearance"].(AppearanceComponent)
+
+					if app.Name == targetApp.Name {
+						lootable, _ := inv.Items[i].Components["lootable"].(LootableComponent)
+
+						return lootable.Key
+					}
+				}
+			}
+		}
+	}
+	return 0
+}
+
+func FindItemWithKey(entity *GameEntity, keyCode int) *GameEntity {
+	// Find an item in the entities inventory that has been assigned to the supplied key, and return it. If no such
+	// entity exists, return nil.
+	if entity.HasComponent("inventory") {
+		inv, _ := entity.Components["inventory"].(InventoryComponent)
+
+		for i := 0; i < len(inv.Items); i++ {
+			if inv.Items[i].HasComponent("lootable") {
+				lootable, _ := inv.Items[i].Components["lootable"].(LootableComponent)
+
+				if lootable.Key == keyCode {
+					return inv.Items[i]
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func CountItemInstances(entity, item *GameEntity) int {
+	occurences := 0
+	if entity.HasComponent("inventory") && item.HasComponent("appearance") {
+		inv, _ := entity.Components["inventory"].(InventoryComponent)
+		itemApp, _ := item.Components["appearance"].(AppearanceComponent)
+
+		for i := 0; i < len(inv.Items); i++ {
+			if inv.Items[i].HasComponent("appearance") {
+				app, _ := inv.Items[i].Components["appearance"].(AppearanceComponent)
+
+				if app.Name == itemApp.Name {
+					occurences++
+				}
+			}
+		}
+	}
+	return occurences
 }

@@ -21,7 +21,7 @@ func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *ga
 				pos, _ := e.Components["position"].(PositionComponent)
 				app, _ := e.Components["appearance"].(AppearanceComponent)
 
-				SystemClearAt(e, camera)
+				SystemClearAt(e, camera, pos.X, pos.Y)
 
 				cameraX, cameraY := camera.ToCameraCoordinates(pos.X, pos.Y)
 
@@ -37,7 +37,7 @@ func SystemRender(entities []*GameEntity, camera *camera.GameCamera, gameMap *ga
 
 func SystemClear(entities []*GameEntity, camera *camera.GameCamera) {
 	for _, e := range entities {
-		if e.HasComponents([]string{"position", "appearance"}) {
+		if e.HasComponents([]string{"position","appearance"}) {
 			// Clear the entity from the screen. This only applies to entities that have a position and an
 			// appearance
 			positionComponent, _ := e.Components["position"].(PositionComponent)
@@ -51,15 +51,15 @@ func SystemClear(entities []*GameEntity, camera *camera.GameCamera) {
 	}
 }
 
-func SystemClearAt(entity *GameEntity, camera *camera.GameCamera) {
-	if entity.HasComponents([]string{"position", "appearance"}) {
+func SystemClearAt(entity *GameEntity, camera *camera.GameCamera, x, y int) {
+	// Clear an entity that may not have a position any longer
+	if entity.HasComponent("appearance") {
 
-		positionComponent, _ := entity.Components["position"].(PositionComponent)
 		appearanceComponent, _ := entity.Components["appearance"].(AppearanceComponent)
 
 		layer := blt.TK_LAYER
 		blt.Layer(appearanceComponent.Layer)
-		cameraX, cameraY := camera.ToCameraCoordinates(positionComponent.X, positionComponent.Y)
+		cameraX, cameraY := camera.ToCameraCoordinates(x, y)
 		blt.Print(cameraX, cameraY, " ")
 		blt.Layer(layer)
 	}
@@ -305,8 +305,8 @@ func SystemReproduce(entity *GameEntity, entities []*GameEntity, gameMap *gamema
 	return nil
 }
 
-func SystemPickupItem(entity *GameEntity, entities []*GameEntity, gameMap *gamemap.Map, messageLog *ui.MessageLog) {
-	if entity.HasComponent("inventory") {
+func SystemPickupItem(entity *GameEntity, entities []*GameEntity, camera *camera.GameCamera, messageLog *ui.MessageLog, inventoryKeys map[int]bool) map[int]bool {
+	if entity.HasComponents([]string{"inventory", "position", "appearance"}) {
 		inv, _ := entity.Components["inventory"].(InventoryComponent)
 		pos, _ := entity.Components["position"].(PositionComponent)
 		app, _ := entity.Components["appearance"].(AppearanceComponent)
@@ -317,38 +317,61 @@ func SystemPickupItem(entity *GameEntity, entities []*GameEntity, gameMap *gamem
 			// For now, this assumes one entity per tile, which will obviously need to change
 			targetEntity := entitiesPresent[0]
 
-			targetAppearance, _ := targetEntity.Components["appearance"].(AppearanceComponent)
+			if targetEntity.HasComponents([]string{"appearance", "position"}) {
+				targetPosition, _ := targetEntity.Components["position"].(PositionComponent)
+				targetAppearance, _ := targetEntity.Components["appearance"].(AppearanceComponent)
 
-			if targetEntity.HasComponent("lootable") {
-				targetLootable, _ := targetEntity.Components["lootable"].(LootableComponent)
+				if targetEntity.HasComponent("lootable") {
+					targetLootable, _ := targetEntity.Components["lootable"].(LootableComponent)
 
-				// Make sure the lootable is not currently in an inventory
-				if len(inv.Items) < inv.Capacity && !targetLootable.InInventory {
-					// Transfer the lootable entity to the players inventory
-					targetLootable.InInventory = true
-					targetLootable.Owner = entity
+					// Make sure the lootable is not currently in an inventory
+					if len(inv.Items) < inv.Capacity && !targetLootable.InInventory {
+						// Transfer the lootable entity to the players inventory
+						targetLootable.InInventory = true
+						targetLootable.Owner = entity
 
-					targetEntity.RemoveComponents([]string{"lootable", "position"})
-					targetEntity.AddComponent("lootable", targetLootable)
+						key := getExistingItemKey(entity, targetEntity)
 
-					inv.Items = append(inv.Items, targetEntity)
+						if key != 0 {
+							targetLootable.Key = key
+						} else {
+							// There was no existing identical item in the inventory, so we need to assign a key to this
+							// one. Pull the key from a pool of possible, non-assigned keys
+							for k, v := range inventoryKeys {
+								if !v {
+									targetLootable.Key = k
+									break
+								}
+							}
+							// Make sure we mark the key used as not available
+							inventoryKeys[targetLootable.Key] = true
+						}
 
-					entity.RemoveComponent("inventory")
-					entity.AddComponent("inventory", inv)
+						targetEntity.RemoveComponents([]string{"lootable", "position"})
+						targetEntity.AddComponent("lootable", targetLootable)
 
-					messageLog.SendMessage(app.Name + " picks up the [color=" + targetAppearance.Color + "]" + targetAppearance.Name + "[/color]")
-				} else {
-					if entity.HasComponent("player") {
-						messageLog.SendMessage("Your inventory is full, and you cannot pick up the ")
+						inv.Items = append(inv.Items, targetEntity)
+
+						entity.RemoveComponent("inventory")
+						entity.AddComponent("inventory", inv)
+
+						SystemClearAt(targetEntity, camera, targetPosition.X, targetPosition.Y)
+
+						messageLog.SendMessage(app.Name + " picks up the [color=" + targetAppearance.Color + "]" + targetAppearance.Name + "[/color]")
+					} else {
+						if entity.HasComponent("player") {
+							messageLog.SendMessage("Your inventory is full, and you cannot pick up the ")
+						}
 					}
+				} else {
+					// The entity present is not lootable, notify, and do not add it to inventory
+					messageLog.SendMessage("Cannot pick up that [color=" + targetAppearance.Color + "]" + targetAppearance.Name + "[/color]")
 				}
-			} else {
-				// The entity present is not lootable, notify, and do not add it to inventory
-				messageLog.SendMessage("Cannot pick up that [color=" + targetAppearance.Color + "]" + targetAppearance.Name + "[/color]")
 			}
 		} else {
 			messageLog.SendMessage("There is nothing to pick up here!")
 		}
 
 	}
+	return inventoryKeys
 }
