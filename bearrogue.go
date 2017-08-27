@@ -45,7 +45,9 @@ var (
 	examining         bool
 	examineCursor     *examinecursor.XCursor
 	inMenu            bool
+	inInventory       bool
 	informationScreen bool
+	dropping          bool
 	inventoryKeys     map[int]bool
 )
 
@@ -124,7 +126,9 @@ func init() {
 	// Set the default menu state to false. This will be true when a menu is displayed, which will indicate that control
 	// needs to be given to the menu, instead of the main game
 	inMenu = false
+	inInventory = false
 	informationScreen = false
+	dropping = false
 
 	inventoryKeys = map[int]bool{blt.TK_A: false,
 		blt.TK_B: false,
@@ -210,8 +214,12 @@ func main() {
 			renderSideBar()
 		} else {
 			// Render the menu or information screen
-			if inMenu && !informationScreen {
-				renderinventory()
+			if inInventory && !informationScreen {
+				renderInventory("Inventory")
+			}
+
+			if dropping {
+				renderDroppingScreen()
 			}
 		}
 	}
@@ -261,18 +269,27 @@ func handleInput(key int, entity *ecs.GameEntity) {
 			inventoryKeys = ecs.SystemPickupItem(player, entities, gameCamera, &messageLog, inventoryKeys)
 		case blt.TK_I:
 			inMenu = true
+			inInventory = true
+		case blt.TK_D:
+			inMenu = true
+			dropping = true
 		case blt.TK_ESCAPE:
 			// Cancel the current action and return the game state to normal
 			actionTaken = false
 			examining = false
 			inMenu = false
+			inInventory = false
 			informationScreen = false
+			dropping = false
 			if examineCursor != nil {
 				examineCursor.Clear(gameCamera)
 			}
 			ui.ClearScreen(WindowSizeX, WindowSizeX)
 		}
 	} else {
+
+		selectedEntity := ecs.FindItemWithKey(player, key)
+
 		// If we are in a menu, bound controls will be different than standard.
 		switch key {
 		case blt.TK_ESCAPE:
@@ -281,8 +298,12 @@ func handleInput(key int, entity *ecs.GameEntity) {
 			examining = false
 			if informationScreen {
 				informationScreen = false
-			} else {
+			} else if inInventory {
 				inMenu = false
+				inInventory = false
+			} else if dropping {
+				inMenu = false
+				dropping = false
 			}
 
 			if examineCursor != nil {
@@ -291,11 +312,17 @@ func handleInput(key int, entity *ecs.GameEntity) {
 			ui.ClearScreen(WindowSizeX, WindowSizeX)
 		}
 
-		selectedEntity := ecs.FindItemWithKey(player, key)
-
 		if selectedEntity != nil {
-			informationScreen = true
-			renderInformationScreen(selectedEntity)
+			if inInventory {
+				informationScreen = true
+				renderInformationScreen(selectedEntity)
+			} else if dropping {
+				ecs.SystemDropItem(player, selectedEntity, entities, &messageLog, inventoryKeys)
+				inMenu = false
+				dropping = false
+				ui.ClearScreen(WindowSizeX, WindowSizeX)
+			}
+
 		}
 	}
 
@@ -385,7 +412,7 @@ func renderSideBar() {
 	}
 }
 
-func renderinventory() {
+func renderInventory(title string) {
 	ui.ClearScreen(WindowSizeX, WindowSizeX)
 
 	if player.HasComponent("inventory") {
@@ -407,7 +434,7 @@ func renderinventory() {
 				items[name]++
 			}
 		}
-		ui.DisplayInventory(inv.Capacity, len(inv.Items), items)
+		ui.DisplayInventory(title, inv.Capacity, len(inv.Items), items)
 	}
 }
 
@@ -426,6 +453,10 @@ func renderInformationScreen(item *ecs.GameEntity) {
 
 		ui.DisplayInformationScreen(title, desc.ShortDesc, desc.LongDesc, occurences, WindowSizeY)
 	}
+}
+
+func renderDroppingScreen() {
+	renderInventory("Drop which Item?")
 }
 
 func examine(dx, dy int) {

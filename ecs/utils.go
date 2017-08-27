@@ -161,3 +161,23 @@ func CountItemInstances(entity, item *GameEntity) int {
 	}
 	return occurences
 }
+
+func ItemsOwnedByEntity(entity *GameEntity, entities []*GameEntity) []*GameEntity {
+	// Returns an array of all entities that are owned by the entity, and in the entities inventory
+
+	ownedEntities := []*GameEntity{}
+
+	for i := 0; i < len(entities); i++ {
+		if entities[i] != nil {
+			if entities[i].HasComponent("lootable") {
+				lootable, _ := entities[i].Components["lootable"].(LootableComponent)
+
+				if lootable.InInventory && lootable.Owner == entity {
+					ownedEntities = append(ownedEntities, entities[i])
+				}
+			}
+		}
+	}
+
+	return ownedEntities
+}

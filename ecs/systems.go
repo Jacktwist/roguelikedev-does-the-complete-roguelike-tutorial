@@ -375,3 +375,35 @@ func SystemPickupItem(entity *GameEntity, entities []*GameEntity, camera *camera
 	}
 	return inventoryKeys
 }
+
+func SystemDropItem(entity *GameEntity, item *GameEntity, entities []*GameEntity, messageLog *ui.MessageLog, inventoryKeys map[int]bool) {
+	if entity.HasComponents([]string{"position", "inventory", "appearance"}) {
+		if item.HasComponents([]string{"lootable", "appearance"}) {
+			entityInv, _ := entity.Components["inventory"].(InventoryComponent)
+			entityPos, _ := entity.Components["position"].(PositionComponent)
+			lootable, _ := item.Components["lootable"].(LootableComponent)
+			itemApp, _ := item.Components["appearance"].(AppearanceComponent)
+			entityApp, _ := entity.Components["appearance"].(AppearanceComponent)
+
+			// First, make sure the item is owned by the entity trying to drop it, and that its in an inventory
+			if lootable.Owner == entity && lootable.InInventory {
+				// Now, give the dropped item a position, and remove it from the entities inventory
+				lootable.Owner = nil
+				lootable.InInventory = false
+
+				pos := PositionComponent{X: entityPos.X, Y: entityPos.Y}
+
+				item.RemoveComponent("lootable")
+				item.AddComponents(map[string]Component{"lootable": lootable, "position": pos})
+
+				// Also remove the item from the entities inventory
+				entityInv.Items = ItemsOwnedByEntity(entity, entities)
+
+				entity.RemoveComponent("inventory")
+				entity.AddComponent("inventory", entityInv)
+
+				messageLog.SendMessage(entityApp.Name + " drops the [color=" + itemApp.Color + "]" + itemApp.Name + "[/color]")
+			}
+		}
+	}
+}

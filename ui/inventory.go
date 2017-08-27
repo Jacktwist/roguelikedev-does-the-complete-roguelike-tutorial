@@ -5,8 +5,8 @@ import (
 	"strconv"
 )
 
-func printHeader(invMax, invUsed int) {
-	blt.Print(1, 1, "Inventory ("+strconv.Itoa(invUsed)+"/"+strconv.Itoa(invMax)+")")
+func printHeader(title string, invMax, invUsed int) {
+	blt.Print(1, 1, title+" ("+strconv.Itoa(invUsed)+"/"+strconv.Itoa(invMax)+")")
 	blt.Print(1, 2, "--------------------")
 }
 
@@ -23,8 +23,8 @@ func printInventoryItems(items map[string]int) {
 	}
 }
 
-func DisplayInventory(invMax, invUsed int, items map[string]int) {
-	printHeader(invMax, invUsed)
+func DisplayInventory(title string, invMax, invUsed int, items map[string]int) {
+	printHeader(title, invMax, invUsed)
 	printInventoryItems(items)
 }
 
@@ -38,5 +38,5 @@ func DisplayInformationScreen(title, shortDescription, longDescription string, o
 
 	blt.Print(1, 10, "You have "+strconv.Itoa(occurences)+" of these.")
 
-	blt.Print(1, windowHeight-1, "[color=light blue]Actions available:[/color]")
+	blt.Print(1, windowHeight-1, "[color=light blue]Actions available: (d)rop this item[/color]")
 }
